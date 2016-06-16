@@ -186,7 +186,7 @@ namespace EvoOptimization
             double count = 0;
             foreach (T O in _population)
             {
-                foreach (bool bit in O.Bits.Range(0, OptoGlobals.NumberOfFeatures)) count += Convert.ToInt16(bit);
+                foreach (bool bit in O.Bits.Range(0, (uint)OptoGlobals.NumberOfFeatures)) count += Convert.ToInt16(bit);
             }
             return count / _popSize;
         }
@@ -380,28 +380,16 @@ namespace EvoOptimization
             SortedList<String, Tuple<Double, Double>> output = new SortedList<string, Tuple<Double, Double>>(_lookup);
                     _population[0].Save("Best " + Optimizer.Token + " gen" + generation);
 
-
-                using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create("Suspects" + p))))
-                {
-                    fout2.WriteLine("Best Confusion Matrix so far: (TP, TN, FP, FN), " + _population[0].GetConfusionMatrix().Serialize());
-                    fout2.Write(_population[0].ToString() + ", ");
-                    _population[0].DumpSuspectRowsToStream(fout2);
-                }
                 using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create("LabelsFromBest" + p))))
                 {
                     fout2.WriteLine(_population[0].ToString() + ", ");
                     _population[0].DumpLabelsToStream(fout2);
-
-
                 }
                 using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create("CVLabelsFromBest" + p))))
                 {
                     fout2.WriteLine(_population[0].ToString() + ", ");
                     _population[0].DumpCVLabelsToStream(fout2);
-
-
-                }
-
+            }
                     DumpLookupFailSafe(output);
 
         }

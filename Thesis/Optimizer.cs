@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections;
-using System.Linq;
-using System.Text;
-using MyUtils;
-using MathWorks.MATLAB.NET.Arrays;
-using Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet;
 using System.IO;
+using MyUtils;
 namespace EvoOptimization
 {
     public abstract class Optimizer : IComparable<Optimizer>
     {
-        internal const int firstFeature = 0, featureLength = 238;
+        protected static int firstFeature = 0, featureLength = OptoGlobals.NumberOfFeatures;
         public string GetToken { get { return _optimizerToken; } }
         protected void PrepForSave(string path, System.Security.AccessControl.DirectorySecurity temp)
         {
@@ -54,19 +50,12 @@ namespace EvoOptimization
         }
 
         protected static string functionString;
-        protected double[,] myBaseTeX, myBaseTrX;
+        protected List<List<Double>> myTeX, myTrX;
         protected List<int> SuspectRows;
-        public Double[,] GeneratedLabels = null, CVGeneratedLabels = null;
-        public object MatLabModel = null;
-        public Double[,] myPredictorLabels = null;
+        public List<int> GeneratedLabels = null, CVGeneratedLabels = null, PredictorLabels = null;
         protected BitArray _bits;
         protected double _nLearners = 1;
 
-
-        protected void NullMatlabModel()
-        {
-            MatLabModel = null;
-        }
 
         protected void NullGeneratedLabels()
         {
@@ -76,7 +65,6 @@ namespace EvoOptimization
 
         public void CompactMemory()
         {
-            NullMatlabModel();
             NullGeneratedLabels();
         }
 
@@ -98,26 +86,15 @@ namespace EvoOptimization
             {
                 _bits[i] = false;
             }
-            myTeX = OptoGlobals.mwTeX;
-            myTrX = OptoGlobals.mwTrX;
+            myTeX = OptoGlobals.testingXRaw;
+            myTrX = OptoGlobals.trainingXRaw;
 
         }
         protected ConfusionMatrix _confuMat;
         public ConfusionMatrix GetConfusionMatrix() { return _confuMat; }
-        virtual public void DumpSuspectRowsToStream(System.IO.StreamWriter fout)
-        {
-            if (SuspectRows == null) CompareLabelsToIntensity();
-            foreach (int i in SuspectRows)
-            {
-                foreach (String piece in OptoGlobals.testingYRaw[i])
-                {
-                    fout.Write(piece + ", ");
-                }
-                fout.WriteLine();
-            }
-        }
+
         protected static string _optimizerToken;
-        virtual public void DumpLabelsToStream(System.IO.StreamWriter fout)
+        virtual public void DumpLabelsToStream(StreamWriter fout)
         {
             if (Multiclass)
                 dumpStringLabelsToStream(fout, GeneratedLabels);
@@ -171,6 +148,7 @@ namespace EvoOptimization
         protected double _fitness = -1;
         protected double _mcc = -1;
         protected string[] myBaseLabels;
+
         public double MCC { get { return _mcc; } set { _mcc = value; } }
         public double Fitness { get { return _fitness; } set { _fitness = value; } }
 
@@ -179,8 +157,6 @@ namespace EvoOptimization
         {
             myTeX = myTrX = null;
             myBaseLabels = null;
-            myBaseTeX = myBaseTrX = null;
-            myPredictorLabels = null;
         }
 
         public virtual void Save(string path)
@@ -199,17 +175,17 @@ namespace EvoOptimization
 
         }
 
-                protected static MWArray extractNumericLabels(String blockString)
+protected static List<int> extractNumericLabels(String blockString)
         {
             
             char[] tokens = { '\n' };
             string[] StrLabels = blockString.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
-            int[,] intLabels = new int[StrLabels.Length, 1];
+            List<int> ret = new List<int>();
             for (int i = 0; i < StrLabels.Length; ++i)
             {
-                intLabels[i, 0] = OptoGlobals.ClassDict[StrLabels[i].Trim()];
+                ret.Add( OptoGlobals.ClassDict[StrLabels[i].Trim()]);
             }
-            return new MWNumericArray(intLabels);
+            return ret;
         }
 
         /// <summary>
@@ -224,18 +200,18 @@ namespace EvoOptimization
             object[] args = getObjArgs();
             object argsOut;
             if(Multiclass){
-                            OptoGlobals.executor.Feval("longMCSave", 2, out argsOut, doSave, path, functionString, _nLearners, myBaseTrX, myBaseTeX, 
+                            OptoGlobals.executor.Feval("longMCSave", 2, out argsOut, doSave, path, functionString, _nLearners, myTrX, myTeX, 
                 OptoGlobals.trainingYString, OptoGlobals.testingYString, myBaseLabels,args);
             }
             else{
-            OptoGlobals.executor.Feval("longSave", 2, out argsOut, doSave, path, functionString, _nLearners, myBaseTrX, myBaseTeX, 
+            OptoGlobals.executor.Feval("longSave", 2, out argsOut, doSave, path, functionString, _nLearners, myTrX, myTeX, 
                 OptoGlobals.trainingYRawLogical, OptoGlobals.testingYRawLogical, myBaseLabels,args);
             }
             object[] parsedArgsOut = (object[])argsOut;
             if (!Multiclass)
             {
-                CVGeneratedLabels = new MWLogicalArray((bool[,])parsedArgsOut[0]);
-                GeneratedLabels = new MWLogicalArray((bool[,])parsedArgsOut[1]);
+                CVGeneratedLabels = ListFromColumnArray((int[,])parsedArgsOut[0]);
+                GeneratedLabels = ListFromColumnArray((int[,])parsedArgsOut[1]);
             }
             else
             {
@@ -245,9 +221,19 @@ namespace EvoOptimization
             NullData();
         }
 
+        private static List<X> ListFromColumnArray<X>(X[,] array)
+        {
+            List<X> ret = new List<X>(array.GetUpperBound(0));
+            for(int i = 0; i < array.GetUpperBound(0); ++i)
+            {
+                ret.Add(array[i, 0]);
+            }
+            return ret;
+        }
+
         protected abstract object[] getObjArgs();
 
-        public MWArray GetCVLabels()
+        public List<int> GetCVLabels()
         {
             if (OptoGlobals.UseMWArrayInterface)
             {
@@ -269,46 +255,6 @@ namespace EvoOptimization
         }
 
         /// <summary>
-        /// Generates list of suspect rows (where the intensity is watch, but is given a false negative label) for printing in DumpSuspectRowsToStream
-        /// </summary>
-        public virtual void CompareLabelsToIntensity()
-        {
-            SuspectRows = new List<int>();
-            if (GeneratedLabels == null) return;
-            if (!Multiclass)
-            {
-                for (int i = 1; i <= GeneratedLabels.Dimensions[0]; ++i)
-                {
-                    if (!((MWLogicalArray)GeneratedLabels)[i, 1] && OptoGlobals.testingYRawLogical[i - 1, 0])
-                    {
-                        int intensity = Int16.Parse(OptoGlobals.testingYRaw[i - 1][7]);
-                        //Predict negative, actually positive
-                        if (PassableMisses.ContainsKey(intensity)) PassableMisses[intensity] += 1;
-                        else PassableMisses.Add(intensity, 1);
-                        if (intensity == 2) SuspectRows.Add(i - 1);
-                    }
-
-                }
-            }
-            else
-            {
-                for (int i = 1; i <= GeneratedLabels.Dimensions[0]; ++i)
-                {
-                    int prediction = (int)((MWNumericArray)GeneratedLabels[i, 1]);
-                    if (prediction == OptoGlobals.ClassDict["No Fault"] && OptoGlobals.testingYRawLogical[i - 1, 0])
-                    {
-                        int intensity = Int16.Parse(OptoGlobals.testingYRaw[i - 1][7]);
-                        //Predict negative, actually positive
-                        if (PassableMisses.ContainsKey(intensity)) PassableMisses[intensity] += 1;
-                        else PassableMisses.Add(intensity, 1);
-                        if (intensity == 2) SuspectRows.Add(i - 1);
-                    }
-
-                }
-            }
-        }
-
-        /// <summary>
         /// Creates myTex and myTrX for the optimizer from features in bits (compare 
         /// </summary>
         protected virtual void setFeatures()
@@ -320,15 +266,14 @@ namespace EvoOptimization
                 Fitness = Double.NaN;
                 if (OptoGlobals.UseMWArrayInterface)
                 {
-                    myTeX = OptoGlobals.mwTeX;
-                    myTrX = OptoGlobals.mwTrX;
-                    myPredictorLabels = new MWCellArray(OptoGlobals.allPredictorNames.ToArray());
+                    myTeX = Util.ArrayTo2dList(OptoGlobals.mwTeX);
+                    myTrX = Util.ArrayTo2dList(OptoGlobals.mwTrX);
                 }
                 else
                 {
                     _bits = _bits.Not();//Flip all the bits, since features are all zero, and then convert matrices to [,]
-                    myBaseTeX = reduceMatrix(featureLength, OptoGlobals.testingXRaw);
-                    myBaseTrX = reduceMatrix(featureLength, OptoGlobals.trainingXRaw);
+                    myTeX = Util.ArrayTo2dList(reduceMatrix(featureLength, OptoGlobals.testingXRaw));
+                    myTrX = Util.ArrayTo2dList(reduceMatrix(featureLength, OptoGlobals.trainingXRaw));
                     myBaseLabels = OptoGlobals.allPredictorNames.ToArray();
                     _bits = _bits.Not();//flip bits back
                 }
@@ -336,19 +281,13 @@ namespace EvoOptimization
             }
 
             List<List<Double>> baseMatrix = OptoGlobals.trainingXRaw;
-            if (OptoGlobals.UseMWArrayInterface)
-            {
-                myTrX = new MWNumericArray(reduceMatrix(cols, OptoGlobals.trainingXRaw));
-                myTeX = new MWNumericArray(reduceMatrix(cols, OptoGlobals.testingXRaw));
-                myPredictorLabels = new MWCellArray(reduceLabels(cols, OptoGlobals.allPredictorNames));
-            }
-            else
-            {
-                myBaseTrX = reduceMatrix(cols, OptoGlobals.trainingXRaw);
-                myBaseTeX = reduceMatrix(cols, OptoGlobals.testingXRaw);
-                myBaseLabels = reduceLabels(cols, OptoGlobals.allPredictorNames);
 
-            }
+            myTeX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.testingXRaw));
+            myTrX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.trainingXRaw));
+
+            myBaseLabels = reduceLabels(cols, OptoGlobals.allPredictorNames);
+
+
         }
 
         protected string[] reduceLabels(int cols, List<String> labels)
@@ -383,11 +322,7 @@ namespace EvoOptimization
             errorCheck();
             interpretVals();
         }
-        /// <summary>
-        /// Gets arguments for MatLab, returned in an array list.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract MWArray[] getArgs();
+
         /// <summary>
         /// Corrects internal errors in the optimizer
         /// </summary>
@@ -462,16 +397,17 @@ namespace EvoOptimization
         protected virtual bool comEvalFunc(object[] args, out object argsOutObj)
         {
             bool success = true;
+            double[,] tex = Util.TwoDimListToSmoothArray(myTeX), trx = Util.TwoDimListToSmoothArray(myTrX);
             try
             {
                 if (!Multiclass)
                 {
-                    OptoGlobals.executor.Feval(Optimizer.functionString, 3, out argsOutObj, myBaseTrX, myBaseTeX,
+                    OptoGlobals.executor.Feval(Optimizer.functionString, 3, out argsOutObj, tex, trx,
                     OptoGlobals.trainingYRawLogical, OptoGlobals.testingYRawLogical, myBaseLabels, _nLearners, args);
                 }
                 else
                 {
-                    OptoGlobals.executor.Feval(Optimizer.functionString, 3, out argsOutObj, myBaseTrX, myBaseTeX,
+                    OptoGlobals.executor.Feval(Optimizer.functionString, 3, out argsOutObj, tex, trx,
                         OptoGlobals.trainingYString, OptoGlobals.testingYString, myBaseLabels, _nLearners, args);
                 }
 

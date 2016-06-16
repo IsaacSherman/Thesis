@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using MyUtils;
-//using MLApp;
-using MathWorks.MATLAB.NET.Arrays;
-using Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet;
-//using EvoOptimization.MatlabSuite;
+
+
 namespace EvoOptimization.SVMOptimizationNET40
 {
     /// <summary>
@@ -25,7 +21,7 @@ namespace EvoOptimization.SVMOptimizationNET40
         private FunctionType _ft;
         protected int _polyPower, _kfold;
         //Let's say we had 4 pieces, each 2 bits long, so 00, 11, 22, 33 0-1, 2-3, 4-5, 6-7
-        const int functionLength = 2, powerLength = 4, kfoldLength = 1, functionStart = firstFeature + featureLength,  powerStart = functionStart + functionLength,
+        static int functionLength = 2, powerLength = 4, kfoldLength = 1, functionStart = firstFeature + featureLength,  powerStart = functionStart + functionLength,
              kfoldStart = powerStart + powerLength, SVMOptimizerConstLength = featureLength + functionLength+ powerLength + kfoldLength;
         public SVMOptimizer()
             : base(SVMOptimizerConstLength)
@@ -50,7 +46,7 @@ namespace EvoOptimization.SVMOptimizationNET40
         {
             get
             {
-                return _bits.Range(firstFeature, (uint)(firstFeature + featureLength));
+                return _bits.Range((uint)firstFeature, (uint)(firstFeature + featureLength));
             }
         }
 
@@ -95,45 +91,6 @@ namespace EvoOptimization.SVMOptimizationNET40
         }
 
 
-        protected override MWArray[] getArgs()
-        {
-            interpretVals();
-            MWCellArray ret = new MWCellArray(11, 1);
-            String kernelStr = "KernelFunction", kernel = GetFunction;
-            int row = 1;
-            ret[row++,1] = kernelStr;
-            ret[row++,1] = kernel;
-
-
-            if (_ft == FunctionType.polynomial)
-            {
-                ret[row++,1] = ("PolynomialOrder");
-            }
-            else
-            {
-                ret[row++,1]=("KernelOffset");
-            }
-                ret[row++,1] = (_polyPower);
-
-
-            ret [row++,1]= ("KernelScale");
-            ret[row++,1]=("auto");
-
-            ret[row++,1] = ("cost");
-            ret[row++,1] = new MWNumericArray(SVMOptimizer.costMatrix);
-
- //           ret[row++,1] =("KFold");
- //           ret[row++,1]=(_kfold);
-
-            MWArray[] realRet = new MWArray[row];
-            for (int i = 1; i <= row; ++i)
-            {
-                realRet[i-1] = ret[i, 1];
-            }
-            return realRet;
-
-        }
-
 
         protected override void interpretVals()
         {
@@ -158,18 +115,7 @@ namespace EvoOptimization.SVMOptimizationNET40
             if (OptoGlobals.UseMWArrayInterface)
             {
                 throw new NotImplementedException();
-                //TrainingSuite evaluator = SVMOptimizer.evaluator;
-                //MWArray[] argsOut;
-                //argsOut = evaluator.svmTrainPoly(3, (MWArray)myTrX, (MWArray)myTeX,
-                //   (MWArray)OptoGlobals.mwTrYLog, (MWArray)OptoGlobals.mwTeYLog, myPredictorLabels);//, args);//, args[8,0], args[9,0]);
 
-                //MWNumericArray demilabel = (MWNumericArray)argsOut[0];
-                //conf = (double[,])demilabel.ToArray();
-
-
-                //NullData();
-                //GeneratedLabels = (MWLogicalArray)argsOut[2];
-                //MatLabModel = argsOut[1];
             }
             else
             {
@@ -178,12 +124,12 @@ namespace EvoOptimization.SVMOptimizationNET40
                 comEvalFunc(args, out argsOutObj);
                 parsedObjOut = (object[])argsOutObj;
                 conf = (double[,])parsedObjOut[0];
-                GeneratedLabels = new MWLogicalArray((bool[,])parsedObjOut[2]);
+                GeneratedLabels =new List<int>(Util.Flatten2dArray((int[,])parsedObjOut[2]));
             }
                 
                 _confuMat = new ConfusionMatrix((int)conf[1, 1], (int)conf[0, 0], (int)conf[0, 1], (int)conf[1, 0]);
                 setFitness();
-                CompareLabelsToIntensity();
+                
                 NullData();
         }
 

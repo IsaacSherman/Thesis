@@ -9,8 +9,8 @@ namespace EvoOptimization
     class EvoOptimizer<T> where T: Optimizer, new()
     {
 
+        public delegate T[] NBreedingFunction(params T[] breeders);
         public delegate T[] BreedingFunction(T a, T b);
-
         public static T[] UniformCrossover(T a, T b)
         {
             System.Diagnostics.Debug.Assert(a.Length == b.Length);

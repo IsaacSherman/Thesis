@@ -10,8 +10,12 @@ namespace EvoOptimization
 {
     public class OptoGlobals
     {
+        public enum CrossoverModes { Uniform, SinglePointChromasome, TwoPointChromasome, SinglePointHunter, TwoPointHunter, RandomHunter, RandomChromasome };
         private static int _seed = (int)DateTime.Now.Ticks;
         public static int GetSeed { get { return _seed; } }
+
+        public static double ComplexityCap { get; internal set; }
+        public static CrossoverModes CrossoverMode { get; internal set; }
 
         public static Boolean IsDebugMode = false;
         public static int NumberOfClasses = 12;
@@ -32,7 +36,7 @@ namespace EvoOptimization
         public static List<List<String>> trainingShaftID, testingShaftID;
         public static List<List<String>> trainingYRaw, testingYRaw;
         public static bool[,] trainingYRawLogical, testingYRawLogical;
-        public static double[,] trainingYIntensity, testingYIntensity;
+        public static double[,] mwTrX, mwTeX;
         public static String[,] trainingYString, testingYString;
         public static MLApp.MLApp executor = new MLApp.MLApp();
         private static System.Diagnostics.Process executorProcess;
@@ -114,22 +118,6 @@ namespace EvoOptimization
         }
 
 
-        public static void RelaunchExecutor()
-        {
-            //executor.Quit();//This forces a hang, apparently?
-            KillingExecutor = true;
-            executorProcess.Kill();
-            
-            while (executorProcess.HasExited == false)
-            {
-                System.Threading.Thread.Sleep(100);
-            }
-            
-            executor = new MLApp.MLApp();
-            KillingExecutor = false;
-            assignExecutorProcess();
-        }
-
 
 
         private static double[,] remapToIntensity(string[,] tempIntensity)
@@ -188,37 +176,7 @@ namespace EvoOptimization
             return ret;
         }
 
-        private static MWCharArray Convert2dArrayToCharArray(List<List<string>> inArray, int col)
-        {
-            String[] ret = new String[inArray.Count];
-            for (int i = 0; i < inArray.Count; ++i)
-            {
-                ret[i] = inArray[i][col];
-            }
-            return new MWCharArray(ret);
-        }
-
-
-
-        private static MWNumericArray Convert2dArrayToNumericMWArray(List<List<double>> inArray)
-        {
-            int rows = inArray.Count;
-            int cols = inArray[0].Count;
-            int[] dim = { rows, cols };
-            double[,] ret = new double[rows, cols];
-            double[] longRet = new double[rows * cols];
-            ///inArray.ToArray();
-            //MWNumericArray ret  = new MWNumericArray(MWClassID, dimensions: dim);
-
-            for (int i = 0; i < rows; ++i)
-            {
-                for (int j = 0; j < cols; ++j)
-                {
-                    ret[i, j] = inArray[i][j];
-                }
-            }
-            return new MWNumericArray(ret);
-        }
+        
 
         private static List<List<string>> loadLabels(string p)
         {
