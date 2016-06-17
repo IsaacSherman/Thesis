@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using EvoOptimization;
 using System.Diagnostics;
-namespace Thesis
+namespace EvoOptimization
 {
     class EvoOptimizerProgram<T> where T: Optimizer, new()
     {
         private int _maxGen,_popSize = 50, _saveAfterGens;
         private bool _validate = false, _noload = false, _multiThread = false, _running = false;
-
+        private List<T> best;
 
         OptimoEvolver<T> D;
      
@@ -115,26 +114,41 @@ namespace Thesis
             }
         }
 
-        public EvoOptimizerProgram(string [] args,  int maxGen = 100, int save = 10)
+        public string BestFilePath
         {
-            _maxGen = maxGen;
-            _saveAfterGens = save;
+            get
+            {
+                return _bestFilePath;
+            }
+
+            set
+            {
+                _bestFilePath = value;
+            }
+        }
+        /// <summary>
+        /// Convenience function, Calls ConfigureEvolver() then Run();
+        /// </summary>
+        public void ConfigureAndRun()
+        {
+            ConfigureEvolver();
+            Run();
+        }
+
+        public EvoOptimizerProgram()
+        {
             T bob = new T();
             _bestFilePath = bob.GetToken + "best.csv";
 
         }
 
-        public EvoOptimizerProgram() : this(null)
-        {
-        }
-
         /// <summary>
-        /// Run this, 
+        /// Run this to set up the evolver- to apply changes made to PopSize or other behavior (MultiThread, Validate, NoLoad, etc).
+        /// Once set up, run Run() to begin the program.
         /// </summary>
         public void ConfigureEvolver()
         {
             D = new OptimoEvolver<T>(_popSize, _crossOverType, !_noload);
-            List<T> best = new List<T>();
             LoadBestFromFile(_bestFilePath);
             int q = 1;
             Stopwatch sw = new Stopwatch();
@@ -144,22 +158,27 @@ namespace Thesis
             }
             D.MultiThread = _multiThread;
             
-            if (_validate) { D.VerifyOutput(); }
+
 
             
         }
 
         private void LoadBestFromFile(String path)
         {
+            best = new List<T>();
             using (StreamReader fin = new StreamReader(path))
             {
                 String line = fin.ReadLine();
                 while (!fin.EndOfStream)
                 {
-                    if (line[0] == '0' || line[0] == '1') { 
-                    T temp = new T();
-                    T.SetBitsToString(line);
-                        _bestFilePath.
+                    if (line[0] == '0' || line[0] == '1')
+                    {
+                        T temp = new T();
+                        temp.SetBitsToString(line);
+                        temp.Prepare();
+                        best.Add(temp);
+                    }
+                    else continue;
                 }
 
             }
@@ -169,7 +188,7 @@ namespace Thesis
         {
             if (D == null)
                 throw new InvalidOperationException("Run ConfigureEvolver() first");
-            
+            if (_validate) { D.VerifyOutput(); }
             Stopwatch sw = new Stopwatch();
             _running = true;
             for (int x = 0; x < _maxGen; ++x)

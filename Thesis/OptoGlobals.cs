@@ -14,6 +14,34 @@ namespace EvoOptimization
         private static int _seed = (int)DateTime.Now.Ticks;
         public static int GetSeed { get { return _seed; } }
 
+        internal static void ConfigureForDataset(string globalPath)
+        {
+            using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(globalPath, FileMode.Open))))
+            {
+
+                //TODO:
+                //What needs to be in the file?
+                //Class definition filepath
+                //location of training, testing sets (these give us the number of features etc., almost- need to know which columns to ignore
+                //So there should be 2 lists- X ignore Columns, Y ignore Columns (could be for the same file, for that matter)
+                //Also, for x ignore and y ignore, an option specifying whether the ignore list is actually an include list (shorter for Y if in master file)
+                //
+                //Format: one variable per line, except for ignore columns.  So it should go like this:
+                ///ignore all lines beginning with #
+                ///Dataset Name
+                ///Class Names File
+                ///TrainingSet X Path
+                ///TrainingSet Y Path
+                ///TestingSet  X Path
+                ///TestingSet  Y Path
+                ///X ignore list, comma separated and starting with w if it's a whitelist (otherwise, blacklist)
+                ///Y ignore list, as above
+                ///
+
+
+            }
+        }
+
         public static double ComplexityCap { get; internal set; }
         public static CrossoverModes CrossoverMode { get; internal set; }
 
@@ -21,12 +49,9 @@ namespace EvoOptimization
         public static int NumberOfClasses = 12;
         public static Random RNG;
         public static int NumberOfFeatures;
-        public static double CrossoverChance = .05, ElitismPercent = .20,
+        public static double CrossoverChance = .25, ElitismPercent = .20,
             InitialRateOfOnes = .03, MutationChance = .01;
-        public static double[,] trX = new double[5, 5] { { 1, 3, 3, 5, 5 }, { 2, 4, 2, 4, 4 }, { 3, -5, 23, -43, 43 }, { 40, 4, 44, 34, 24 }, { -15, -53, -55, -53, 53 } },
-            trY = new double[5, 1] { { 1 }, { 2 }, { 1 }, { 2 }, { 1 } },
-            teX = new double[3, 5] { { 2, 4, 4, 4, 8 }, { 10, 30, 20, 30, 30 }, { 3, -3, 23, -43, 43 } },
-            teY = new double[3, 1] { { 2 }, { 2 }, { 1 } };
+
         private const int dataDemarcation = 6;
         public static bool UseMWArrayInterface = false;
 
@@ -36,10 +61,10 @@ namespace EvoOptimization
         public static List<List<String>> trainingShaftID, testingShaftID;
         public static List<List<String>> trainingYRaw, testingYRaw;
         public static bool[,] trainingYRawLogical, testingYRawLogical;
-        public static double[,] mwTrX, mwTeX;
+        public static double[,] TrX, TeX;
         public static String[,] trainingYString, testingYString;
         public static MLApp.MLApp executor = new MLApp.MLApp();
-        private static System.Diagnostics.Process executorProcess;
+        private static Process executorProcess;
         private const int featureColumn = 6;
         public static bool FaultIsNotNoFault(String fault)
         {
@@ -50,18 +75,13 @@ namespace EvoOptimization
 
 
 
-        //TODO:
-        //Things Optoglobals needs to function:
-        //number of features, needs to be read in.  Required by Optimizers.
-        //list of strings, indexed, which contains the classes in the dataset.  Easily generalizable.  Order needs to be read in. 
-        //File paths to look for the data!  Need to handle different datasets - list columns to include, omit, and which are classes.  Import everything as strings.
 
         static OptoGlobals()
         {
 #if DEBUG
             IsDebugMode = true;
 #endif
-
+            ///This whole thing needs to be moved around
             Console.WriteLine("Entering OptoGlobals STATIC constructor");
             RNG = new Random(_seed);
             String baseFilePath = @"C:\Users\isaac.sherman\Documents\TFS\Isaac Sherman\EvoAlgApplet\SVMOptimization\Data\";
@@ -91,13 +111,13 @@ namespace EvoOptimization
 
             }
 
-            String path = @"./../../../Matlab Scripts/";
-            path = Path.GetFullPath(path);
+            String MATLABpath = @"./../../../Matlab Scripts/";
+            MATLABpath = Path.GetFullPath(MATLABpath);
 
             assignExecutorProcess();
 
 
-            Console.WriteLine(executor.Execute("cd " + "'" + path + "'"));
+            Console.WriteLine(executor.Execute("cd " + "'" + MATLABpath + "'"));
             Console.WriteLine(executor.ToString());
 
 
@@ -243,7 +263,7 @@ namespace EvoOptimization
 
                         }
                     }
-                    if (ret.Count > 1) System.Diagnostics.Debug.Assert(ret[ret.Count - 1].Count == dataRow.Count);
+                    if (ret.Count > 1) Debug.Assert(ret[ret.Count - 1].Count == dataRow.Count);
                     ret.Add(dataRow);
                 }
 

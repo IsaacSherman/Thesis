@@ -266,8 +266,8 @@ protected static List<int> extractNumericLabels(String blockString)
                 Fitness = Double.NaN;
                 if (OptoGlobals.UseMWArrayInterface)
                 {
-                    myTeX = Util.ArrayTo2dList(OptoGlobals.mwTeX);
-                    myTrX = Util.ArrayTo2dList(OptoGlobals.mwTrX);
+                    myTeX = Util.ArrayTo2dList(OptoGlobals.TeX);
+                    myTrX = Util.ArrayTo2dList(OptoGlobals.TrX);
                 }
                 else
                 {
