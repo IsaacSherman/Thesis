@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 using MLApp;
+using MyUtils;
 namespace EvoOptimization
 {
     public class OptoGlobals
@@ -13,11 +14,22 @@ namespace EvoOptimization
         public enum CrossoverModes { Uniform, SinglePointChromasome, TwoPointChromasome, SinglePointHunter, TwoPointHunter, RandomHunter, RandomChromasome };
         private static int _seed = (int)DateTime.Now.Ticks;
         public static int GetSeed { get { return _seed; } }
-
+        static String trXPath, trYPath, teXPath, teYPath, classNamesPath, datasetName;
+        static HashSet<int> xIgnore, yIgnore, xCols, yCols;
+        static bool xBlacklist, yBlacklist;
         internal static void ConfigureForDataset(string globalPath)
         {
             using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(globalPath, FileMode.Open))))
             {
+                datasetName = GetNextNonCommentedLine(fin).Trim();
+
+                classNamesPath = GetNextNonCommentedLine(fin).Trim();
+                trXPath = GetNextNonCommentedLine(fin).Trim();
+                trYPath = GetNextNonCommentedLine(fin).Trim();
+                teXPath = GetNextNonCommentedLine(fin).Trim();
+                teYPath = GetNextNonCommentedLine(fin).Trim();
+                GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref xIgnore, ref xBlacklist);
+                GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref yIgnore, ref yBlacklist);
 
                 //TODO:
                 //What needs to be in the file?
@@ -36,10 +48,149 @@ namespace EvoOptimization
                 ///TestingSet  Y Path
                 ///X ignore list, comma separated and starting with w if it's a whitelist (otherwise, blacklist)
                 ///Y ignore list, as above
-                ///
+                ///After that, we should be able to refer to the variables generated to do the work.
+
+                ///Now, load the datasets:
 
 
             }
+            trainingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, false) as List<List<Double>>;
+            trainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, false) as List<List<String>>;
+            testingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, true) as List<List<Double>>;
+            testingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, true) as List<List<String>>;
+            allPredictorNames = GetPredictorNames(xCols, xBlacklist, trXPath);
+            if(trainingXRaw == null || testingXRaw == null || trainingYRaw == null || testingYRaw == null)
+            {
+                Console.WriteLine("Something went horribly wrong loading data, one or more of the datasets is null.  Could be a bad path.");
+                throw new InvalidCastException();
+            }
+
+            //Datasets are loaded... what's next?  
+        }
+        /// <summary>
+        /// Reads a dataset according to params.  Returns a boxed List<list type="List<T>"></list>
+        /// </summary>
+        /// <param name="cols">Which zero-indexed columns we're pulling in from the file (we'll define this is ignoreFirstLine is false).</param>
+        /// <param name="ignoreList">Which columns should be ignored or included</param>
+        /// <param name="blackList">Boolean based on whether ignoreList is a black- or white- list</param>
+        /// <param name="filePath">file To read</param>
+        /// <param name="isXDataset">If an X dataset, will parse data to doubles before returning.  Otherwise, will return as strings</param>
+        /// <param name="ignoreFirstLine"></param>
+        /// <returns>boxed 2d list, either strings or doubles</returns>
+        private static Object readInDataset(ref HashSet<int> cols, ref HashSet<int> ignoreList, bool blackList, string filePath, bool isXDataset, bool ignoreFirstLine)
+        {
+            using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(filePath, FileMode.Open))))
+            {
+                String firstLine = fin.ReadLine();//Column headers
+                char[] tokens = { ',' };
+                if (!ignoreFirstLine)
+                {
+                    string[] headers = firstLine.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
+                    getColumnList(blackList, ignoreList, out cols, headers.Length);
+
+                }
+                if (isXDataset)
+                {
+                    //return value is List<List<Double>>
+                    List<List<Double>> ret = new List<List<Double>>();
+                    while (!fin.EndOfStream)
+                    {
+                        List<Double> temp = new List<double>();
+                        String line = fin.ReadLine();
+                        string[] data = line.Split();
+                        foreach (int i in cols)
+                        {
+                            double nom;
+                            if (Double.TryParse(data[i].Trim(), out nom))
+                            {
+                                temp.Add(nom);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Error parsing " + data[i].Trim() + " expected a double, got something else, adding NaN to list");
+                                temp.Add(Double.NaN);
+                            }
+                        }
+                        ret.Add(temp);
+                        return ret as Object;
+                    }
+                }
+                else {
+                    List<List<String>> ret = new List<List<String>>();
+
+                    while (!fin.EndOfStream)
+                    {
+                        List<String> temp = new List<String>();
+                        String line = fin.ReadLine();
+                        string[] data = line.Split();
+                        foreach (int i in cols)
+                        {
+                            temp.Add(data[i]);
+                        }
+                        ret.Add(temp);
+                        return ret as Object;
+                    }
+                }
+            }
+            Console.WriteLine("Something went horribly wrong in readInDataset... returning null");
+            return null;
+        }
+        
+
+        /// <summary>
+        /// Take args and set variables appropriately
+        /// </summary>
+        /// <param name="blackList">whether the ignore list is a black list or a white list</param>
+        /// <param name="ignoreList">set of unique indices which should be black or white listed</param>
+        /// <param name="set">the set into which the values should be white- or black- listed</param>
+        /// <param name="headerLength">max of 0 indexed range in case of black list</param>
+        private static void getColumnList(bool blackList, HashSet<int> ignoreList, out HashSet<int> set, int headerLength)
+        {
+            if (blackList)
+            {
+                HashSet<int> temp = new HashSet<int>();
+                for (int i = 0; i < headerLength; ++i)
+                {
+                    temp.Add(i);//Start with all columns
+                }
+                set = temp.SetDifference(ignoreList);//Subtract ignored columns
+            }
+            else
+            {
+                set = new HashSet<int>(ignoreList);
+            }
+        }
+
+        private static void GenerateIgnoreList(string v, ref HashSet<int> ignoreList, ref bool blackList)
+        {
+            char[] sep = { ',' };
+            String [] Tokens = v.Split(sep, StringSplitOptions.RemoveEmptyEntries);
+            blackList = Tokens[0].Trim().Equals("b", StringComparison.CurrentCultureIgnoreCase);
+            ignoreList = new HashSet<int>();
+            for(int i= 1; i < Tokens.Length; ++i)
+            {
+                int res;
+                if (Int32.TryParse(Tokens[i].Trim(), out res))
+                {
+                    ignoreList.Add(res);
+                }
+                else
+                {
+                    Console.WriteLine("Error in ignore list, failed to parse " + Tokens[i].Trim() + "into an integer.");
+                }
+                
+            }
+
+        }
+
+        private static string GetNextNonCommentedLine(StreamReader fin)
+        {
+            String ret = fin.ReadLine();
+            while (ret.StartsWith("#"))
+            {
+                ret = fin.ReadLine();
+            }
+            return ret;
         }
 
         public static double ComplexityCap { get; internal set; }
@@ -58,19 +209,12 @@ namespace EvoOptimization
         public static Dictionary<String, int> ClassDict;
         public static List<String> ClassList, dataHeaders, yHeaders, allPredictorNames;
         public static List<List<Double>> trainingXRaw, testingXRaw;
-        public static List<List<String>> trainingShaftID, testingShaftID;
         public static List<List<String>> trainingYRaw, testingYRaw;
         public static bool[,] trainingYRawLogical, testingYRawLogical;
         public static double[,] TrX, TeX;
         public static String[,] trainingYString, testingYString;
         public static MLApp.MLApp executor = new MLApp.MLApp();
         private static Process executorProcess;
-        private const int featureColumn = 6;
-        public static bool FaultIsNotNoFault(String fault)
-        {
-            bool ret = !fault.ToLower().Trim().Equals("no fault");
-            return ret;
-        }
         public static int totalNumFeatures;
 
 
@@ -84,33 +228,16 @@ namespace EvoOptimization
             ///This whole thing needs to be moved around
             Console.WriteLine("Entering OptoGlobals STATIC constructor");
             RNG = new Random(_seed);
-            String baseFilePath = @"C:\Users\isaac.sherman\Documents\TFS\Isaac Sherman\EvoAlgApplet\SVMOptimization\Data\";
-            trainingShaftID = new List<List<string>>();
-            testingShaftID = new List<List<string>>();
 
-            trainingXRaw = OptoGlobals.loadData(baseFilePath + "trainingDataMatrix.csv", true, out trainingShaftID);
-            testingXRaw = OptoGlobals.loadData(baseFilePath + "testingDataMatrix.csv", false, out testingShaftID);
-            testingYRaw = OptoGlobals.loadLabels(baseFilePath + "testingClassLabels.csv");
-            trainingYRaw = OptoGlobals.loadLabels(baseFilePath + "trainingClassLabels.csv");
-            trainingYString = pullColumnFromArray(trainingYRaw, 6);
-            testingYString = pullColumnFromArray(testingYRaw, 6);
-            trainingYRawLogical = ConvertStringsToLogicalArray(trainingYRaw, featureColumn);
-            testingYRawLogical = ConvertStringsToLogicalArray(testingYRaw, featureColumn);
-            allPredictorNames = GetPredictorNames();
             totalNumFeatures = trainingXRaw[0].Count;
 
-            ClassDict = new Dictionary<string, int>(12);
+            ClassDict = new Dictionary<string, int>();
             int tempCl = 0;
-            string[] tempCats = {"Bearing Defect","Belt Defect","Coupling Defect","Electrical Defect","Gear Defect",
-                                    "Imbalance","Looseness","Lubrication","Misalignment","No Fault","Rotor Bar Defect",
-                                    "Vane Pass"};
-            ClassList = new List<string>(tempCats);
-            foreach (String cat in tempCats)
-            {
-                ClassDict.Add(cat, tempCl++);
-
-            }
-
+            ClassList = new List<string>();
+            tempCl = buildClassListAndDict(tempCl, trainingYRaw);//If Training and Testing sets are configured correctly, the next line is pointless.
+            buildClassListAndDict(tempCl, testingYRaw);
+            //ClassDict is a translator to convert string classes to integers.  ClassList is a list to do the same thing with integers.
+            //ClassList[ClassDict["className"]] is will yield "className", if it is in the dictionary.
             String MATLABpath = @"./../../../Matlab Scripts/";
             MATLABpath = Path.GetFullPath(MATLABpath);
 
@@ -122,6 +249,21 @@ namespace EvoOptimization
 
 
             Console.WriteLine("Leaving Static Constructor");
+        }
+
+        private static int buildClassListAndDict(int tempCl, List<List<string>> listlist)
+        {
+            foreach (List<String> list in listlist)
+            {
+                foreach (String cat in list)
+                {
+                    if (ClassDict.ContainsKey(cat)) continue;
+                    ClassDict.Add(cat, tempCl++);
+                    ClassList.Add(cat);
+                }
+            }
+
+            return tempCl;
         }
 
         private static void assignExecutorProcess()
@@ -155,7 +297,7 @@ namespace EvoOptimization
                 }
                 else
                 {
-                    System.Diagnostics.Debugger.Break();
+                   Debugger.Break();
                 }
 
             }
@@ -172,26 +314,23 @@ namespace EvoOptimization
             return ret;
         }
 
-        private static List<String> GetPredictorNames()
+        private static List<String> GetPredictorNames(HashSet<int> columns, bool isBlacklist, string FilePath)
         {
-            List<String> ret;
-            ret = new List<String>(NumberOfFeatures);
-            int offset = dataDemarcation;
-            for (int i = 0; i < NumberOfFeatures; ++i)
+            List<String> ret = new List<string>();
+            string[] headers;
+                char[] tokens = { ',' };
+            string line;
+            using (StreamReader fin = new StreamReader(new FileStream(FilePath, FileMode.Open)))
             {
-                ret.Add(dataHeaders[i + offset]);
+                line = fin.ReadLine();
+                headers = line.Split(tokens,StringSplitOptions.RemoveEmptyEntries );
             }
-            return ret;
-        }
 
-        private static bool[,] ConvertStringsToLogicalArray(List<List<String>> inArray, int col)
-        {
-            //int[] dims = { inArray.Count, 1 };//Column vector
-            //MWLogicalArray ret = new MWLogicalArray(dims);
-            bool[,] ret = new bool[inArray.Count, 1];
-            for (int i = 0; i < inArray.Count; ++i)
-            {
-                ret[i, 0] = FaultIsNotNoFault(inArray[i][col]);
+            for (int i = 0; i < headers.Length; ++i) {
+                if (isBlacklist ^ columns.Contains(i)) {//If blacklist and i is in the list, skip.  If whitelist and i is not in the list, skip.  Otherwise, execute thie block:
+                    ret.Add(headers[i].Trim());
+                }
+                
             }
             return ret;
         }

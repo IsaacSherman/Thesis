@@ -22,9 +22,9 @@ namespace MyUtils
         public static T[,] TwoDimListToSmoothArray<T>(List<List<T>> list)
         {
             T[,] ret = new T[list.Count, list[0].Count];
-            for(int i = 0; i < list.Count; ++i)
+            for (int i = 0; i < list.Count; ++i)
             {
-                for(int j = 0; j < list[0].Count; ++j)
+                for (int j = 0; j < list[0].Count; ++j)
                 {
                     ret[i, j] = list[i][j];
                 }
@@ -40,7 +40,7 @@ namespace MyUtils
         public static T[][] TwoDimListToJaggedArray<T>(List<List<T>> list)
         {
             T[][] ret = new T[list.Count][];
-            for(int i = 0; i < list.Count; ++i)
+            for (int i = 0; i < list.Count; ++i)
             {
                 ret[i] = list[i].ToArray();
             }
@@ -50,7 +50,7 @@ namespace MyUtils
         public static List<List<T>> ArrayTo2dList<T>(T[][] array)
         {
             List<List<T>> ret = new List<List<T>>();
-            for(int i = 0; i < array.GetUpperBound(0); ++i)
+            for (int i = 0; i < array.GetUpperBound(0); ++i)
             {
                 ret.Add(new List<T>(array[i]));
             }
@@ -59,10 +59,10 @@ namespace MyUtils
         public static List<List<T>> ArrayTo2dList<T>(T[,] array)
         {
             List<List<T>> ret = new List<List<T>>();
-            for(int i = 0; i < array.GetUpperBound(0); ++i)
+            for (int i = 0; i < array.GetUpperBound(0); ++i)
             {
                 List<T> temp = new List<T>();
-                for(int j = 0; j < array.GetUpperBound(1); ++j)
+                for (int j = 0; j < array.GetUpperBound(1); ++j)
                 {
                     temp.Add(array[i, j]);
                 }
@@ -296,7 +296,7 @@ namespace MyUtils
             double average = d.AverageIgnoringNAN();
             for (int i = 0; i < d.Length; ++i)
             {
-                if (Double.IsNaN( d[i])) 
+                if (Double.IsNaN(d[i]))
                     continue;
                 sum += ((d[i] - average) * (d[i] - average));
                 count += 1;
@@ -305,7 +305,7 @@ namespace MyUtils
             else
             {
 
-                ret = Math.Sqrt(sum/count);
+                ret = Math.Sqrt(sum / count);
             }
             if (Double.IsNaN(ret)) System.Diagnostics.Debugger.Break();
             return ret;
@@ -445,15 +445,16 @@ namespace MyUtils
         private static string StringFromInt(int size, int num)
         {
             StringBuilder ret = new StringBuilder(new String('0', size), size);
-            
+
             int temp = 1 << --size;
-            for(int i = size; i >= 0; --i){
-                ret[size - i]= (num >= temp? '1':'0');
+            for (int i = size; i >= 0; --i)
+            {
+                ret[size - i] = (num >= temp ? '1' : '0');
                 num -= temp * (ret[size - i] - '0');
                 temp >>= 1;
             }
-        
-            
+
+
             return ret.ToString();
         }
 
@@ -471,7 +472,7 @@ namespace MyUtils
             if (l == null) return null;
             StringBuilder ret = new StringBuilder(l.Length * 2);
             int stop = l.Length;
-            if(trim) --stop;
+            if (trim) --stop;
             for (int i = 0; i < stop; ++i)
             {
                 if (l[i] == null) continue;
@@ -494,6 +495,28 @@ namespace MyUtils
             return result.ToString();
         }
 
-
+        /// <summary>
+        /// Returns A-B on sets A and B, doesn't modify either set.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="A"></param>
+        /// <param name="B"></param>
+        /// <returns></returns>
+        public static HashSet<T> SetDifference<T>(this HashSet<T> A, HashSet<T> B)
+        {
+            HashSet<T> ret = new HashSet<T>(A);
+            foreach (T elem in B)
+            {
+                if (A.Contains(elem))
+                {
+                    ret.Remove(elem);
+                }
+            }
+            return ret;
+        }
     }
 }
+
+
+
+//}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}

@@ -6,8 +6,9 @@ namespace EvoOptimization
 {
     class EvoOptimizerProgram<T> where T: Optimizer, new()
     {
-        private int _maxGen,_popSize = 50, _saveAfterGens;
-        private bool _validate = false, _noload = false, _multiThread = false, _running = false;
+        private int _maxGen,_popSize = 50, _saveAfterGens=10;
+        private bool _validate = false, _noload = false, _multiThread = false, _running = false, _outputBaseline = true;
+        
         private List<T> best;
 
         OptimoEvolver<T> D;
@@ -126,6 +127,21 @@ namespace EvoOptimization
                 _bestFilePath = value;
             }
         }
+
+        public bool OutputBaseline
+        {
+            get
+            {
+                return _outputBaseline;
+            }
+
+            set
+            {
+                _outputBaseline = value;
+            }
+        }
+
+
         /// <summary>
         /// Convenience function, Calls ConfigureEvolver() then Run();
         /// </summary>
@@ -189,6 +205,21 @@ namespace EvoOptimization
             if (D == null)
                 throw new InvalidOperationException("Run ConfigureEvolver() first");
             if (_validate) { D.VerifyOutput(); }
+
+
+            if (_outputBaseline)
+            {
+                T baseline = new T();
+                string basePath = baseline.GetToken + "BaseLine.csv";
+                baseline.SetBitsToString(new string('0', baseline.Bits.Length));
+                baseline.Prepare();
+                baseline.Eval();
+                using (StreamWriter baseFout = new StreamWriter(new FileStream(basePath, FileMode.Create)))
+                {
+                    baseline.DumpLabelsToStream(baseFout);
+                }
+            }
+
             Stopwatch sw = new Stopwatch();
             _running = true;
             for (int x = 0; x < _maxGen; ++x)

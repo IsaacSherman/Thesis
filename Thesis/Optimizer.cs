@@ -7,7 +7,7 @@ namespace EvoOptimization
 {
     public abstract class Optimizer : IComparable<Optimizer>
     {
-        protected static int firstFeature = 0, featureLength = OptoGlobals.NumberOfFeatures;
+        protected static int firstFeature = 0;// OptoGlobals.NumberOfFeatures;
         public string GetToken { get { return _optimizerToken; } }
         protected void PrepForSave(string path, System.Security.AccessControl.DirectorySecurity temp)
         {
@@ -34,7 +34,7 @@ namespace EvoOptimization
             double[,] ret = new double[rows, cols];
 
 
-            for (int i = firstFeature; i < featureLength+firstFeature; ++i)
+            for (int i = firstFeature; i < OptoGlobals.NumberOfFeatures+firstFeature; ++i)
             {
                 if (_bits[i])
                 {
@@ -71,7 +71,7 @@ namespace EvoOptimization
 
         public int Length { get { return _bits.Length; } }
         public BitArray Bits { get { return _bits; } }
-        public Optimizer() : this(featureLength) { }
+        public Optimizer() : this(OptoGlobals.NumberOfFeatures) { }
         public Optimizer(int stringLength)
         {
             _bits = new BitArray(stringLength);
@@ -82,7 +82,7 @@ namespace EvoOptimization
         }
         public virtual void AllColumns()
         {
-            for (int i = firstFeature; i < featureLength; ++i)
+            for (int i = firstFeature; i < OptoGlobals.NumberOfFeatures; ++i)
             {
                 _bits[i] = false;
             }
@@ -115,22 +115,22 @@ namespace EvoOptimization
         /// </summary>
         /// <param name="fout"></param>
         /// <param name="Labels"></param>
-        protected void dumpStringLabelsToStream(System.IO.StreamWriter fout, List<int> Labels)
+        protected void dumpStringLabelsToStream(StreamWriter fout, List<int> Labels)
         {
             if (Labels == null) return;
             fout.WriteLine(_optimizerToken);
-            for (int i = 1; i <= Labels.Count; ++i)
+            for (int i = 0; i < Labels.Count; ++i)
             {
                 fout.WriteLine(OptoGlobals.ClassList[Labels[i]]);
             }
         }
 
 
-        protected void dumpLabelsToStream(System.IO.StreamWriter fout, List<int> Labels)
+        protected void dumpLabelsToStream(StreamWriter fout, List<int> Labels)
         {
             if (Labels == null) return;
             fout.WriteLine(_optimizerToken);
-            for (int i = 1; i <= Labels.Count; ++i)
+            for (int i = 0; i < Labels.Count; ++i)
             {
                 fout.WriteLine(Labels[i]);
             }
@@ -260,7 +260,7 @@ protected static List<int> extractNumericLabels(String blockString)
         protected virtual void setFeatures()
         {
             int cols = 0;
-            foreach (bool bit in _bits.Range((uint)firstFeature, (uint)(firstFeature + featureLength))) { if (bit) cols++; }
+            foreach (bool bit in _bits.Range((uint)firstFeature, (uint)(firstFeature + OptoGlobals.NumberOfFeatures))) { if (bit) cols++; }
             if (cols == 0)
             {
                 Fitness = Double.NaN;
@@ -271,11 +271,10 @@ protected static List<int> extractNumericLabels(String blockString)
                 }
                 else
                 {
-                    _bits = _bits.Not();//Flip all the bits, since features are all zero, and then convert matrices to [,]
-                    myTeX = Util.ArrayTo2dList(reduceMatrix(featureLength, OptoGlobals.testingXRaw));
-                    myTrX = Util.ArrayTo2dList(reduceMatrix(featureLength, OptoGlobals.trainingXRaw));
+                    myTeX = new List<List<double>>(OptoGlobals.testingXRaw);
+                    myTrX = new List<List<double>>(OptoGlobals.trainingXRaw);
                     myBaseLabels = OptoGlobals.allPredictorNames.ToArray();
-                    _bits = _bits.Not();//flip bits back
+                    _bits = _bits.Not();//flip bits back, no harm done
                 }
                 return;
             }
@@ -295,7 +294,7 @@ protected static List<int> extractNumericLabels(String blockString)
             int [] dims = {1, cols};
             string[] ret = new string[cols];
             int colStepper = 0;
-            for (int i = firstFeature; i < featureLength + firstFeature; ++i)
+            for (int i = firstFeature; i < OptoGlobals.NumberOfFeatures + firstFeature; ++i)
             {
                 if (_bits[i])
                 {//Matlab arrays are 1 indexed for some reason

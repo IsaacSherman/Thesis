@@ -12,8 +12,7 @@ namespace EvoOptimization.SVMOptimizationNET40
 
         static void Main(string[] args)
         {
-            //One of : Both Horz(in and Out) or both (Vert in and out), + either axial
-            //Change the features to copy missing data
+
             // Create the MATLAB instance 
             String GlobalPath = "/../Data/Yeast/DataSetConfig.csv";
             if (args.Length >= 2) { GlobalPath = args[1]; }

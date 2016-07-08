@@ -21,8 +21,8 @@ namespace EvoOptimization.SVMOptimizationNET40
         private FunctionType _ft;
         protected int _polyPower, _kfold;
         //Let's say we had 4 pieces, each 2 bits long, so 00, 11, 22, 33 0-1, 2-3, 4-5, 6-7
-        static int functionLength = 2, powerLength = 4, kfoldLength = 1, functionStart = firstFeature + featureLength,  powerStart = functionStart + functionLength,
-             kfoldStart = powerStart + powerLength, SVMOptimizerConstLength = featureLength + functionLength+ powerLength + kfoldLength;
+        static int functionLength = 2, powerLength = 4, kfoldLength = 1, functionStart = firstFeature + OptoGlobals.NumberOfFeatures,  powerStart = functionStart + functionLength,
+             kfoldStart = powerStart + powerLength, SVMOptimizerConstLength = OptoGlobals.NumberOfFeatures + functionLength+ powerLength + kfoldLength;
         public SVMOptimizer()
             : base(SVMOptimizerConstLength)
         {
@@ -46,7 +46,7 @@ namespace EvoOptimization.SVMOptimizationNET40
         {
             get
             {
-                return _bits.Range((uint)firstFeature, (uint)(firstFeature + featureLength));
+                return _bits.Range((uint)firstFeature, (uint)(firstFeature + OptoGlobals.NumberOfFeatures));
             }
         }
 
@@ -64,7 +64,7 @@ namespace EvoOptimization.SVMOptimizationNET40
 
         override public void AllColumns()
         {
-            for (int i = firstFeature; i < featureLength; ++i)
+            for (int i = firstFeature; i < OptoGlobals.NumberOfFeatures; ++i)
             {
                 _bits[i] = false;
             }
