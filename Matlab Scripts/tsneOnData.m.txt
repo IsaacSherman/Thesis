@@ -1,0 +1,6 @@
+Y = categorical(Y);
+%m(~isnan(m(:,2)),:)
+good = find(~any(isnan(X),2));
+Xfull = X(good,:);
+Yfull = Y(good, :);
+tsne(Xfull, Yfull, 50,82)

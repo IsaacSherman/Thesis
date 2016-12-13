@@ -5,7 +5,7 @@ using System.Text;
 using MyUtils;
 using EvoOptimization;
 
-namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
+namespace MyCellNet
 {
 
     /// <summary>

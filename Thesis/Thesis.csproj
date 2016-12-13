@@ -64,6 +64,7 @@
     <Compile Include="EvoOptimizer.cs" />
     <Compile Include="EvoOptimizerProgram.cs" />
     <Compile Include="Hunter.cs" />
+    <Compile Include="MulticlassNBOptimizer.cs" />
     <Compile Include="Optimizer.cs" />
     <Compile Include="OptimoEvolver.cs" />
     <Compile Include="OptoGlobals.cs" />

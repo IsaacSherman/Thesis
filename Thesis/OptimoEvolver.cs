@@ -21,6 +21,9 @@ namespace EvoOptimization
         protected List<T> _population;
         public List<T> Population { get { return _population; } }
         public Boolean MultiThread { get; set; }
+        public double AverageFitness { get; private set; }
+        public List<double> AverageFitnessTracker = new List<double>(), BestFitnessTracker = new List<double>();
+
         protected string _outputPath, _currentGenPath;
         public OptimoEvolver(int PopSize, CrossoverType xType, bool loadFromFile = false)
         {
@@ -152,12 +155,32 @@ namespace EvoOptimization
             dumpPopulationToFile();
             if (MultiThread) ThreadEvalAllOptimizers();
             else SeriallyEvalOptimizers();
+            getMetrics();
             _population.Sort();
             _population.Reverse();
             CompactNonElites();
             GenerateNextGeneration();
             if (FocusOnAllColumns) SetPopToAllCols();
             ++generation;
+        }
+
+        private void getMetrics()
+        {
+            double count = 0, sum = 0, max = -1;
+            foreach (T x in Population)
+            {
+                if (x.Fitness < 0)
+                {
+                    x.Fitness = 0;
+                }
+                count += 1;
+                max = (x.Fitness > max ? x.Fitness : max);
+                sum += x.Fitness;
+                AverageFitness = sum / count;
+            }
+            AverageFitnessTracker.Add(AverageFitness);
+            BestFitnessTracker.Add(max);
+
         }
 
         protected void CompactNonElites()
@@ -391,6 +414,27 @@ namespace EvoOptimization
                     _population[0].DumpCVLabelsToStream(fout2);
             }
                     DumpLookupFailSafe(output);
+            using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create(Population[0].GetToken + "CumulativeFitness.csv"))))
+            {
+
+                StringBuilder genLine = new StringBuilder("Generation:,"), avgLine = new StringBuilder("Average Fitness:,"), bestLine = new StringBuilder("Best Fitness:,");
+                for (int i = 0; i < BestFitnessTracker.Count; ++i)
+                {
+                    genLine.Append(i);
+                    genLine.Append(",");
+                    avgLine.Append(AverageFitnessTracker[i] + ",");
+                    bestLine.Append(BestFitnessTracker[i] + ",");
+
+
+                }
+                fout2.WriteLine(genLine.ToString());
+                fout2.WriteLine(avgLine.ToString());
+                fout2.WriteLine(bestLine.ToString());
+                fout2.WriteLine();
+
+            }
+
+            
 
         }
 

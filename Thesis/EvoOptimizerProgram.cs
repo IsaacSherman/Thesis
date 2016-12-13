@@ -182,7 +182,7 @@ namespace EvoOptimization
         private void LoadBestFromFile(String path)
         {
             best = new List<T>();
-            using (StreamReader fin = new StreamReader(path))
+            using (StreamReader fin = new StreamReader(new FileStream(path, FileMode.OpenOrCreate)))
             {
                 String line = fin.ReadLine();
                 while (!fin.EndOfStream)
@@ -230,6 +230,13 @@ namespace EvoOptimization
                 Console.WriteLine("Elapsed time for generation " + x + " = " + sw.ElapsedMilliseconds + "  ms");
 
                 Console.WriteLine("Average number of columns = " + D.GetAverageFeatureCount());
+                double sum = 0, count = 0;
+                foreach(T t in D.Population)
+                {
+                    sum += t.Fitness;
+                    count += 1;
+                }
+                Console.WriteLine("Best Fitness = " + D.Population[0].Fitness + " \n Average fitness = " + D.AverageFitness);
                 if (x % _saveAfterGens == 0) D.DumpLookupToFile(D.Population[0].GetToken + x + ".csv");
                 sw.Reset();
             }

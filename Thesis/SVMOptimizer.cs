@@ -21,8 +21,8 @@ namespace EvoOptimization.SVMOptimizationNET40
         private FunctionType _ft;
         protected int _polyPower, _kfold;
         //Let's say we had 4 pieces, each 2 bits long, so 00, 11, 22, 33 0-1, 2-3, 4-5, 6-7
-        static int functionLength = 2, powerLength = 4, kfoldLength = 1, functionStart = firstFeature + OptoGlobals.NumberOfFeatures,  powerStart = functionStart + functionLength,
-             kfoldStart = powerStart + powerLength, SVMOptimizerConstLength = OptoGlobals.NumberOfFeatures + functionLength+ powerLength + kfoldLength;
+        static int functionLength = 2, powerLength = 4, kfoldLength = 1, functionStart = firstFeature + OptoGlobals.NumberOfFeatures, powerStart = functionStart + functionLength,
+             kfoldStart = powerStart + powerLength, SVMOptimizerConstLength = OptoGlobals.NumberOfFeatures + functionLength + powerLength + kfoldLength;
         public SVMOptimizer()
             : base(SVMOptimizerConstLength)
         {
@@ -110,7 +110,7 @@ namespace EvoOptimization.SVMOptimizationNET40
         public override void Eval()
         {
             setFeatures();
-            double[,] conf;                
+            double[,] conf;
 
             if (OptoGlobals.UseMWArrayInterface)
             {
@@ -121,10 +121,22 @@ namespace EvoOptimization.SVMOptimizationNET40
             {
                 object[] args = getObjArgs(), parsedObjOut;
                 object argsOutObj = null;
-                comEvalFunc(args, out argsOutObj);
-                parsedObjOut = (object[])argsOutObj;
-                conf = (double[,])parsedObjOut[0];
-                GeneratedLabels =new List<int>(Util.Flatten2dArray((int[,])parsedObjOut[2]));
+                if (comEvalFunc(args, out argsOutObj))
+                {
+                    parsedObjOut = (object[])argsOutObj;
+                    conf = (double[,])parsedObjOut[0];
+                    List<string> tempLabels = new List<String>();
+
+
+
+                    GeneratedLabels = new List<int>(Util.Flatten2dArray((int[,])parsedObjOut[2]));
+
+                }
+                else
+                {
+                    conf = new double[2,2] { { 0, 0 }, { 0, 0 } };
+                    GeneratedLabels = null;
+                }
             }
                 
                 _confuMat = new ConfusionMatrix((int)conf[1, 1], (int)conf[0, 0], (int)conf[0, 1], (int)conf[1, 0]);
@@ -156,8 +168,8 @@ namespace EvoOptimization.SVMOptimizationNET40
             ret.Add("KernelScale");
             ret.Add("auto");
 
-            ret.Add("cost");
-            ret.Add(SVMOptimizer.costMatrix);
+            //ret.Add("cost");
+            //ret.Add(SVMOptimizer.costMatrix);
 
 
             object[] realRet = ret.ToArray();

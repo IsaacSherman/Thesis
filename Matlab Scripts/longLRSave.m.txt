@@ -1,0 +1,9 @@
+function [ cvLabels, label, sse ] = longLRSave( doSave,path, funcstr, modelSpec, trX, teX, trY,...
+    teY, predictorNames, otherArgs)
+	func = str2func(funcstr);
+	[label, sse, model] =  func(trX, teX, trY, teY, predictorNames, modelSpec, otherArgs);
+	cvLabels = predict(model, trX);
+
+    if(doSave==1)
+		saveModel(path, model);
+	end

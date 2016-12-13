@@ -1,0 +1,32 @@
+trX = [ 1, 3, 3, 5, 5 ;  2, 4, 2, 4, 4 ;  3, -5, 23, -43, 43 ;...
+    40, 4, 44, 34, 24; -15, -53, -55, -53, 53 ; 2,4,6,8,10;];
+teX = [2, 4, 4, 4, 8;10, 30, 20, 30, 30; 3, -3, 23, -43, 43; ];
+trY = [1;2;1;2;1;2];
+teY = [2;2;1;];
+cost = [0,1;1,0;];
+
+otherArgs = {};
+
+[label, sse, model] = trainLR(trX, teX, trY, teY, {'1','2','3','4','5'}, 'quadratic', otherArgs)
+
+mdl = stepwiseglm(trX, trY, 'quadratic');
+[label, yci] = predict(mdl, teX)
+
+av = (min(label) + max(label)) /2;
+tempLabel = label > av;
+
+diff = teY-label
+% 
+% predictorLabels = {'This', 'is', 'my', 'voice', 'inmatlab'};
+% [cmat ,model, accy] = trainNB(trX, teX, trY, teY, predictorLabels, 1, otherArgs)
+%  [~, model, accy, CVlabelsSVM] = svmTrainPoly(trX, teX, trY, teY,...
+%      predictorLabels, 'KernelFunction','rbf', 'KernelOffset', 10,'KernelScale',...
+%      'auto','cost',cost, []);%, 'KFold', 10, []);
+%  [~, knnaccy, knnmdel, CVLabelsKNN] = knnTrain(trX, teX, trY, teY, predictorLabels,...
+%     'BreakTies','nearest', 'NumNeighbors', 1,'DistanceWeight',...
+%     'equal','cost',cost, 'Distance', 'spearman', []);
+% [~, rusAccy, rusmdl, CVLabelsRUS ] = trainRUSBoost(trX, teX, trY, teY, 100,...
+%    predictorLabels, 'cost', cost, ...
+%    []);
+% 
+% 

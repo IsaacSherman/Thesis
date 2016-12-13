@@ -7,7 +7,7 @@ using MyUtils;
 using System.Diagnostics;
 using EvoOptimization;
 
-namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
+namespace MyCellNet
 {
 
 

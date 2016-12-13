@@ -5,8 +5,8 @@ using MyUtils;
 using System.Diagnostics;
 using EvoOptimization;
 
-namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
-{
+namespace MyCellNet
+{ 
     /// <summary>
     /// The Cell is a building block for chromasomes.  At the simplest level, the cell consists of a function, upper and lower limits.
     /// As complexity increases (more cells get joined together) it also maintains join bits, and affinity bits.
@@ -16,9 +16,9 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
     /// The limit bits are checked against the value returned by the function.  If the value is within the limits, it will vote yes.  
     ///     If not, it will vote no.  There are 6 or so bits in each of the limit fields, formated as 11.1111; these 
     ///     code to standard deviations outside of the norm.  So a lower limit of 01.1000 and an upper limit of 11.0000 would code to 
-    ///     if f(x) returns a value between 1.5 and 3 standard deviations from the norm,  then return (vote) YES.  If the class bit was NOT, 
+    ///     if f(x) returns a value between 1.5 and 3,  then return (vote) YES.  If the class bit was NOT, 
     ///     it would reverse this vote.
-    ///     If limits become invalid (lower > upper) they will simply be swapped using errorcheck().
+    ///     If limits become invalid (lower > upper) they will simply be swapped during errorcheck().
     /// The join bit refers to where the cell links up with another cell.  Note that while joinbit is encoded, NextCell is separate;
     ///     NextCell is a pointer to a cell if a cell exists (so if joinbit is true, then NextCell is not null) but if joinbit is false, 
     ///     NextCell may or may not be null.  Thus, when stepping through the list for mutations and whatnot, there may be a chain of dead cells which
@@ -32,63 +32,65 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
     /// </summary>
     public class Cell
     {
-#region Constants
-        const int classBitStart = 0, classLength = 1;
-        const int functionLength = 4, functionStart = 1;
-        const int joinBitLength = 1;
-        const int limitLength = 9;
-        const int maskLength = 11;
-        
-        const int maskComponentLength = 6, maskOrientationLength = 3, maskLocationLength = 2;
-        const int lowerLimitStart = functionStart + functionLength, upperLimitStart = lowerLimitStart + limitLength,
-            maskStart = upperLimitStart + limitLength, joinBitStart = maskStart + maskLength;
-        public const int    NumberOfFunctions = 1<<functionLength;
-        const int powerOffset = 4;
-        public const int CellLength = functionLength + (2 * limitLength) + classLength + maskLength + joinBitLength;
-        public const int MaskComponentLength = maskComponentLength;
+        #region Constants
+
+        //
+
+
+        //Bits resolve as follows: NotFlag, Function, Lower Limit, Upper Limit
+        static private int _notFlagStart, _functionStart, _lLimitStart, _uLimitStart, _functionLength, _notFlagLength=1, limitLength=8, _joinBitStart, powerOffset = limitLength;
+        static public int CellLength, NumberOfFunctions;
+
+        /// <summary>
+        /// Handles initialization of static ints, which revolve around the number of functions, in this case features possible given the data.
+        /// Initialize delegates or use accessors and human readable labels
+        /// </summary>
+        static Cell()
+        {
+            _notFlagStart = 0;
+            _functionStart = _notFlagStart + _notFlagLength;
+            NumberOfFunctions = OptoGlobals.ClassDict.Keys.Count;
+            _functionLength = (int)Math.Ceiling(Math.Log(NumberOfFunctions, 2)); //So our cells will have enough bits to carry the necessary number of functions
+            _lLimitStart = _functionStart + _functionLength;
+            _uLimitStart = _lLimitStart + limitLength;
+            _joinBitStart = _uLimitStart + limitLength;
+            CellLength = _joinBitStart + _notFlagLength;
+            functions = new DataDelegate[NumberOfFunctions];
+            initDelegatesAndNames();
+
+        }
+
+
+        protected void rerollBits(int start, int end)
+        {
+            for (int i = start; i < end; ++i)
+            {
+                _bits[i] = OptoGlobals.RNG.NextDouble() < .5;
+            }
+        }
         #endregion
         //Member fields
-        double lLimit = -10, uLimit = -10, mutability = 1;
+        double lLimit = -10, uLimit = -10;
         int numCells = 1;
         
-        BitArray bits = new BitArray(CellLength);
-
+        BitArray _bits = new BitArray(CellLength);
+        
 
         public Cell NextCell = null;
         public delegate double DataDelegate(object data);
         
         public static DataDelegate[] functions;
-        /// <summary>
-        /// Initialize delegates or use accessors and human readable labels
-        /// </summary>
-        static Cell()
-        {
-           
-            functions = new DataDelegate[NumberOfFunctions];
-            
-            initDelegatesAndNames();
 
 
-        }
-
-
+        
         private static void initDelegatesAndNames()
         {
 
         }
 
-        private static void initMaskLocationStrings()
-        {
-
-        }
-
-        private static void initMaskOrientationStrings()
-        {
-         
-        }
         public Cell(BitArray newBits, Cell nextCell)
         {
-            bits = new BitArray(newBits);
+            _bits = new BitArray(newBits);
             addCell(nextCell);
             ErrorCheck();
         }
@@ -96,7 +98,7 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
         public string Serialize()
         {
             StringBuilder ret = new StringBuilder("Cell:");
-            for (int i = 0; i < bits.Length; ++i) ret.Append(bits[i] == true ? "1" : "0");
+            for (int i = 0; i < _bits.Length; ++i) ret.Append(_bits[i] == true ? "1" : "0");
             ret.Append("|");
             return ret.ToString();
         }
@@ -146,7 +148,7 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
         {
             get
             {
-                return bits[0];
+                return _bits[0];
             }
             
         }
@@ -166,16 +168,10 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
         }
         internal  bool joinBit
         {
-            get { return bits[joinBitStart]; }
-            set { bits[joinBitStart] = value; }
+            get { return _bits[_joinBitStart]; }
+            set { _bits[_joinBitStart] = value; }
         }
-        public int NumCells
-        {
-            get
-            {
-                return numCells;
-            }
-        } //Make sure numCells is read only outside of Cell.
+
         public bool JoinBit { get { return joinBit; } }
 
 
@@ -185,7 +181,7 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
         //Constructors and constructor adjacent
         public Cell()
         {
-            this.initBits();
+            initBits();
         }
         /// <summary>
         /// This constructor is used in the crossover process to copy a cell without populating NextCell.
@@ -195,7 +191,7 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
         {
             if (temp != null)
             {
-                bits = new BitArray(temp.bits);
+                _bits = new BitArray(temp._bits);
 
             }
             NextCell = null;//Do not copy the other cells in line
@@ -206,9 +202,9 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
 
         private void initBits()
         {
-            for (int i = 0; i < bits.Length; i++)
+            for (int i = 0; i < _bits.Length; i++)
             {
-                bits[i] =  (OptoGlobals.RNG.Next() % 2 == 1 ? true : false);
+                _bits[i] =  (OptoGlobals.RNG.Next() % 2 == 1 ? true : false);
             }
             joinBit = false;//just make 1 cell
             ErrorCheck();
@@ -226,7 +222,6 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
             }
             else//if not, pass it down to the next cell
                 NextCell.joinCell(other);
-            ++numCells;//This is particularly important for the head cell to know how many it has trailing, for the chromosome.
         }
         /// <summary>
         /// Identical to joinCell, but the join bit is not altered
@@ -257,14 +252,22 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
             }
             else if (LowerLimit == UpperLimit)
             {
-                int rand = OptoGlobals.RNG.Next(lowerLimitStart, upperLimitStart);
-                bits[rand] = !bits[rand];//randomly invert some bit, 
-                if (bits[rand] == true)
+                int rand = OptoGlobals.RNG.Next(_lLimitStart, _uLimitStart);
+                _bits[rand] = !_bits[rand];//randomly invert some bit, 
+                if (_bits[rand] == true)
                     swapLowerToUpper();//If bits[rand] is true, then it was 0, and the lower limit just got larger.
                 
                 //This block is reached one time in every 2^(2limitLength) cells, or for a limit length of 7, once every 16,384 cells.
             evalLimits();
             }
+
+            if(bitsInRange(_functionStart, _functionStart + _functionLength).BinaryStringToInt() > NumberOfFunctions)
+            {
+                rerollBits(_functionStart, _functionStart + _functionLength);
+                ErrorCheck();
+                return;
+            }
+
             Cell temp = this;
             int count = 0;
             while (temp != null)
@@ -279,11 +282,11 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
 
         private void swapLowerToUpper()
         {
-            BitArray temp = new BitArray(bits.Range(lowerLimitStart, upperLimitStart));
+            BitArray temp = new BitArray(_bits.Range((uint)_lLimitStart, (uint)_uLimitStart));
             for (int i = 0; i < limitLength; i++)
             {
-                bits[lowerLimitStart + i] = bits[upperLimitStart + i];
-                bits[upperLimitStart + i] = temp[i];
+                _bits[_lLimitStart + i] = _bits[_uLimitStart + i];
+                _bits[_uLimitStart + i] = temp[i];
             }
             ErrorCheck();
         }
@@ -291,25 +294,31 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
         //decoding functions
         public string BitsAsString()
         {
-            return bits.BitsToString();
+            return _bits.BitsToString();
+        }
+
+
+        private string bitsInRange(int start, int end)
+        {
+            return bitsInRange((uint)start, (uint)end);
         }
 
         private string bitsInRange(uint start, uint end)
         {
-            return bits.Range(start, end).BitsToString();
+            return _bits.Range(start, end).BitsToString();
         }
         private string GetFunctionString()
         {
-            return bitsInRange(functionStart, functionStart + functionLength);
+            return bitsInRange(_functionStart, _functionStart + _functionLength);
         }
    
         private string getLowerLimitString()
         {
-            return bitsInRange(lowerLimitStart, upperLimitStart);
+            return bitsInRange(_lLimitStart, _uLimitStart);
         }
         private string getUpperLimitString()
         {
-            return bitsInRange(upperLimitStart, maskStart);
+            return bitsInRange(_uLimitStart, _notFlagStart);
         }
 
 
@@ -344,8 +353,8 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
         {
             for (int i = 0; i < CellLength; i++)
             {
-                if (OptoGlobals.RNG.NextDouble() <= mutability)
-                    bits[i] = !bits[i];
+                if (OptoGlobals.RNG.NextDouble() <= OptoGlobals.MutationChance)
+                    _bits[i] = !_bits[i];
 
             }
             ErrorCheck();//If upper limit <= lower limit, fix it
@@ -365,8 +374,8 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
             for (int i = 0; i < CellLength; ++i)//it makes sense at this level to use ordered iteration
             {
                 // if (a.OptoGlobals.RNG.NextDouble() <= EvoGlobals.CrossOverChance) switchTargets(a, b, ref target, ref notTarget);
-                ret[0].bits[i] = target.bits[i];
-                ret[1].bits[i] = notTarget.bits[i];
+                ret[0]._bits[i] = target._bits[i];
+                ret[1]._bits[i] = notTarget._bits[i];
             }
             ret[0].ErrorCheck();
             ret[1].ErrorCheck();
@@ -408,31 +417,13 @@ namespace Emerson.CSI.Applet.MHM.Internal.EvoAlgApplet
         /// <summary>
         /// Forces a recount of the cells in the 
         /// </summary>
-        public void updateCellNum()
-        {
-            numCells = 0;
-            Cell temp = this;
-            while (temp != null)
-            {
-                numCells++;
-                temp = temp.NextCell;
-                if (numCells < 0) throw new Exception("Infinite Loop in Cell");
-            }
-            temp = this;
-            int count = numCells;
-            while (temp != null)
-            {
-                temp.numCells = count--;
-                temp = temp.NextCell;
-            }
-        }
-#region HumanReadableSegment
-        private static String[] functionNames = new String[NumberOfFunctions], maskOrientationStrings = new String[8], 
-             maskLocationStrings= new String[4], maskComponentStrings = new String[6];
-        
+
+        #region HumanReadableSegment
+
+
         public String HumanReadableCell(){
             StringBuilder ret = new StringBuilder();
-            ret.AppendLine("\tThis cell looks at " + functionNames[GetFunctionString().BinaryStringToInt()]);
+            ret.AppendLine("\tThis cell looks at feature " + GetFunctionString().BinaryStringToInt());
             ret.AppendLine("\t\twhose return value "+ (NotFlag? "is between " : "is not between ") + LowerLimit+ 
                 " and " + UpperLimit + " standard deviations");
             return ret.ToString();

@@ -148,7 +148,7 @@ namespace EvoOptimization
         protected double _fitness = -1;
         protected double _mcc = -1;
         protected string[] myBaseLabels;
-
+        protected List<Double> classAccuracy;
         public double MCC { get { return _mcc; } set { _mcc = value; } }
         public double Fitness { get { return _fitness; } set { _fitness = value; } }
 
@@ -199,14 +199,9 @@ protected static List<int> extractNumericLabels(String blockString)
             setFeatures();
             object[] args = getObjArgs();
             object argsOut;
-            if(Multiclass){
-                            OptoGlobals.executor.Feval("longMCSave", 2, out argsOut, doSave, path, functionString, _nLearners, myTrX, myTeX, 
-                OptoGlobals.trainingYString, OptoGlobals.testingYString, myBaseLabels,args);
-            }
-            else{
-            OptoGlobals.executor.Feval("longSave", 2, out argsOut, doSave, path, functionString, _nLearners, myTrX, myTeX, 
-                OptoGlobals.trainingYRawLogical, OptoGlobals.testingYRawLogical, myBaseLabels,args);
-            }
+                            OptoGlobals.executor.Feval("longMCSave", 2, out argsOut, doSave, path, functionString, _nLearners, Util.TwoDimListToSmoothArray(myTrX), Util.TwoDimListToSmoothArray(myTeX), 
+                OptoGlobals.trainingYIntArray, OptoGlobals.testingYIntArray, myBaseLabels,args);
+            
             object[] parsedArgsOut = (object[])argsOut;
             if (!Multiclass)
             {
@@ -215,8 +210,8 @@ protected static List<int> extractNumericLabels(String blockString)
             }
             else
             {
-                CVGeneratedLabels = extractNumericLabels((string)parsedArgsOut[0]);
-                GeneratedLabels = extractNumericLabels((string)parsedArgsOut[1]);
+                CVGeneratedLabels = ListFromColumnArray((int[,])parsedArgsOut[0]);
+                GeneratedLabels = ListFromColumnArray((int[,])parsedArgsOut[1]);
             }
             NullData();
         }
@@ -274,7 +269,6 @@ protected static List<int> extractNumericLabels(String blockString)
                     myTeX = new List<List<double>>(OptoGlobals.testingXRaw);
                     myTrX = new List<List<double>>(OptoGlobals.trainingXRaw);
                     myBaseLabels = OptoGlobals.allPredictorNames.ToArray();
-                    _bits = _bits.Not();//flip bits back, no harm done
                 }
                 return;
             }
@@ -320,6 +314,7 @@ protected static List<int> extractNumericLabels(String blockString)
         {
             errorCheck();
             interpretVals();
+            setFeatures();
         }
 
         /// <summary>
@@ -380,16 +375,19 @@ protected static List<int> extractNumericLabels(String blockString)
 
         protected virtual void setFitness()
         {
-            if (_confuMat != null)
-            {
-                _fitness = _confuMat.AverageAccuracy;
-                _mcc = _confuMat.MatthewsCorrelationCoefficient;
-            }
-            else
-            {
-                _fitness = 0;
-                _mcc = -1;
-            }
+
+                if (classAccuracy != null)
+                {
+                    _fitness = classAccuracy.ToArray().AverageIgnoringNAN();
+                    foreach (double acc in classAccuracy)
+                        _mcc = (acc > _mcc ? acc : _mcc);
+                }
+                else
+                {
+                    _fitness = 0;
+                    _mcc = -1;
+                }
+            
             if (Double.IsNaN(_fitness) || _fitness < 0) _fitness = 0;
         }
 
@@ -399,16 +397,9 @@ protected static List<int> extractNumericLabels(String blockString)
             double[,] tex = Util.TwoDimListToSmoothArray(myTeX), trx = Util.TwoDimListToSmoothArray(myTrX);
             try
             {
-                if (!Multiclass)
-                {
-                    OptoGlobals.executor.Feval(Optimizer.functionString, 3, out argsOutObj, tex, trx,
-                    OptoGlobals.trainingYRawLogical, OptoGlobals.testingYRawLogical, myBaseLabels, _nLearners, args);
-                }
-                else
-                {
-                    OptoGlobals.executor.Feval(Optimizer.functionString, 3, out argsOutObj, tex, trx,
-                        OptoGlobals.trainingYString, OptoGlobals.testingYString, myBaseLabels, _nLearners, args);
-                }
+                    OptoGlobals.executor.Feval(Optimizer.functionString, 3, out argsOutObj, trx, tex,
+                    OptoGlobals.trainingYIntArray, OptoGlobals.testingYIntArray, myBaseLabels, _nLearners, args);
+             
 
             }
             catch (System.Runtime.InteropServices.COMException e)
@@ -436,59 +427,57 @@ protected static List<int> extractNumericLabels(String blockString)
             }
         }
 
-
-        public static int[,] ScoreMulticlassClassifier(double[,] label)
+        /// <summary>
+        /// Finds the accuracy of a multi-class confusion matrix per row, the assumption being that rows are truth and columns are predictions.
+        /// </summary>
+        /// <param name="label">The confusion matrix, assumed to be square and to have the same dimensions as the number of classes</param>
+        /// <returns>an array of doubles corresponding to the accuracy per class.  ret[classDict[className]] should return the accuracy for the class</returns>
+        public static double[] ScoreMulticlassClassifier(double[,] label)
         {
-            int[,] conf = new int[2, 2];
+            
             double wrongPositives=0;//calls that are incorrect, but not calling a false alarm or missed call
-            if (OptoGlobals.IsDebugMode)
+            double[] sumOfRows = new double[OptoGlobals.NumberOfClasses], sumOfCols = new double[OptoGlobals.NumberOfClasses],
+                accuracyByClass = new double[OptoGlobals.NumberOfClasses];
+
+            for (int row = 0; row < OptoGlobals.NumberOfClasses; ++row)
             {
-                for (int i = 0; i < 12; ++i)
+
+                for (int col = 0; col < OptoGlobals.NumberOfClasses; ++col)
                 {
-                    for (int j = 0; j < 12; ++j)
+                    sumOfRows[row] += label[row, col];//This gives us the number of hits in the row, which is the number of instances of the class in the training set
+                    sumOfCols[col] += label[row, col];//This gives us the number of hits in the column, which is how many times the classifier chose the class
+                    if (OptoGlobals.IsDebugMode)
                     {
-                        Console.Write(label[i, j] + ", ");
-                        System.Diagnostics.Debug.Write(label[i, j] + ", ");
+                        Console.Write(label[row, col] + ", ");
+                        System.Diagnostics.Debug.Write(label[row, col] + ", ");
                     }
-                    Console.WriteLine();
+                }
+                if (OptoGlobals.IsDebugMode)
+                {
                     System.Diagnostics.Debug.WriteLine("");
+                    Console.WriteLine();
 
                 }
             }
+            if (OptoGlobals.IsDebugMode)
+            {
+                System.Diagnostics.Debug.WriteLine("");
+                Console.WriteLine();
 
+            }
             for (int row = 0; row < OptoGlobals.NumberOfClasses; ++row)
             {
                 for (int col = 0; col < OptoGlobals.NumberOfClasses; ++col)
                 {
                     if (row == col)//On diagonal, so true
                     {
-                        if (row == OptoGlobals.ClassDict["No Fault"]) conf[0, 0] += (int)label[row, col];//True Negative
-                        else
-                        {
-                            conf[1, 1] += (int)label[row, col];//True Positive
-                        }
+                        accuracyByClass[row] = label[row, col] / sumOfRows[row];//Now we have the True Positive rate.  Average accuracy, our metric for this portion, will be derived from this.
                     }
-                    else
-                    {//not on diagonal
-                        if (row == OptoGlobals.ClassDict["No Fault"])
-                        {//False Positive
-                            conf[0, 1] += (int)label[row, col];
-                        }
-                        else if (col == OptoGlobals.ClassDict["No Fault"])//Column was what the classifier called. False negative
-                        {
-                            //false Negative
-                            conf[1, 0] += (int)label[row, col];
-                        }
-                        else
-                        {
-                            wrongPositives += label[row, col];
-                        }
-                    }
+
 
                 }
             }
-            conf[1, 1] += (int)(wrongPositives * .5);//Partial credit assignment
-            return conf;
+            return accuracyByClass;
         }
 
         internal void MakeEmptyConfumat()

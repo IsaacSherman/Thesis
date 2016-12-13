@@ -1,0 +1,36 @@
+function [ confusionMatrix, model, label ] = knnTrain( trX, teX, trY, teY,...
+    predictorNames, numlearners, otherArgs)
+%svmTrainTest trains and tests a KNN classifier, returns accuracy
+%   Detailed explanation goes here
+disp(otherArgs)
+disp(length(otherArgs))
+rng(13, 'twister');
+switch(length(otherArgs))
+    case 2
+        model = fitcknn(trX, trY, 'PredictorNames', predictorNames,...
+            otherArgs{1}, otherArgs{2});
+    case 4
+        model = fitcknn(trX, trY, 'PredictorNames', predictorNames,...
+            otherArgs{1}, otherArgs{2}, otherArgs{3}, otherArgs{4});
+    case 6
+        model = fitcknn(trX, trY, 'PredictorNames', predictorNames,...
+            otherArgs{1}, otherArgs{2}, otherArgs{3},...
+            otherArgs{4}, otherArgs{5}, otherArgs{6});
+    case 8
+        model = fitcknn(trX, trY,'PredictorNames', predictorNames,...
+            otherArgs{1}, otherArgs{2}, otherArgs{3},...
+            otherArgs{4}, otherArgs{5}, otherArgs{6}, otherArgs{7}, otherArgs{8});
+    case 10
+        disp('Made it to case 10')
+        model = fitcknn(trX, trY,'PredictorNames', predictorNames,...
+            otherArgs{1}, otherArgs{2}, otherArgs{3},...
+            otherArgs{4}, otherArgs{5}, otherArgs{6}, otherArgs{7}, otherArgs{8}, ...
+            otherArgs{9}, otherArgs{10});
+    otherwise
+        model = fitcknn(trX, trY, 'PredictorNames', predictorNames);
+end
+
+label = predict(model, teX);
+confusionMatrix = confusionmat(teY, label);
+
+end

@@ -19,6 +19,9 @@ namespace EvoOptimization
         static bool xBlacklist, yBlacklist;
         internal static void ConfigureForDataset(string globalPath)
         {
+
+            Console.WriteLine(Path.GetFullPath(globalPath));
+            globalPath = Path.GetFullPath(globalPath);
             using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(globalPath, FileMode.Open))))
             {
                 datasetName = GetNextNonCommentedLine(fin).Trim();
@@ -55,18 +58,47 @@ namespace EvoOptimization
 
             }
             trainingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, false) as List<List<Double>>;
+            NumberOfFeatures = xCols.Count;
             trainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, false) as List<List<String>>;
+            trainingYString = Util.TwoDimListToSmoothArray(trainingYRaw);
             testingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, true) as List<List<Double>>;
             testingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, true) as List<List<String>>;
-            allPredictorNames = GetPredictorNames(xCols, xBlacklist, trXPath);
-            if(trainingXRaw == null || testingXRaw == null || trainingYRaw == null || testingYRaw == null)
+            testingYString = Util.TwoDimListToSmoothArray(testingYRaw);
+
+            allPredictorNames = GetPredictorNames(xCols, trXPath);
+            if (trainingXRaw == null || testingXRaw == null || trainingYRaw == null || testingYRaw == null)
             {
                 Console.WriteLine("Something went horribly wrong loading data, one or more of the datasets is null.  Could be a bad path.");
                 throw new InvalidCastException();
             }
+            int tempCl = 0;
+            totalNumFeatures = trainingXRaw[0].Count;
+            ClassDict = new Dictionary<string, int>();
+            ClassList = new List<string>();
+            tempCl = buildClassListAndDict(tempCl, trainingYRaw);//If Training and Testing sets are configured correctly, the next line is pointless.
+            buildClassListAndDict(tempCl, testingYRaw);
 
+            testingYIntArray =  intArrayFromStringList(testingYRaw);
+
+            trainingYIntArray = intArrayFromStringList(trainingYRaw);
+
+            NumberOfClasses = ClassList.Count;
+
+            //ClassDict is a translator to convert string classes to integers.  ClassList is a list to do the same thing with integers.
+            //ClassList[ClassDict["className"]] is will yield "className", if it is in the dictionary.
             //Datasets are loaded... what's next?  
         }
+
+        private static int[,] intArrayFromStringList(List<List<String>> inList, int col = 0)
+        {
+            int[,] ret = new int[inList.Count, 1];
+            for (int i = 0; i < inList.Count; ++i)
+            {
+                ret[i, 0] = ClassDict[inList[i][col]];
+            }
+            return ret;
+        }
+
         /// <summary>
         /// Reads a dataset according to params.  Returns a boxed List<list type="List<T>"></list>
         /// </summary>
@@ -97,7 +129,7 @@ namespace EvoOptimization
                     {
                         List<Double> temp = new List<double>();
                         String line = fin.ReadLine();
-                        string[] data = line.Split();
+                        string[] data = line.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
                         foreach (int i in cols)
                         {
                             double nom;
@@ -112,8 +144,9 @@ namespace EvoOptimization
                             }
                         }
                         ret.Add(temp);
-                        return ret as Object;
                     }
+                    return ret as Object;
+
                 }
                 else {
                     List<List<String>> ret = new List<List<String>>();
@@ -122,14 +155,15 @@ namespace EvoOptimization
                     {
                         List<String> temp = new List<String>();
                         String line = fin.ReadLine();
-                        string[] data = line.Split();
+                        string[] data = line.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
                         foreach (int i in cols)
                         {
-                            temp.Add(data[i]);
+                            temp.Add(data[i].Trim());
                         }
                         ret.Add(temp);
-                        return ret as Object;
                     }
+                    return ret as Object;
+
                 }
             }
             Console.WriteLine("Something went horribly wrong in readInDataset... returning null");
@@ -197,11 +231,11 @@ namespace EvoOptimization
         public static CrossoverModes CrossoverMode { get; internal set; }
 
         public static Boolean IsDebugMode = false;
-        public static int NumberOfClasses = 12;
+        public static int NumberOfClasses;
         public static Random RNG;
         public static int NumberOfFeatures;
         public static double CrossoverChance = .25, ElitismPercent = .20,
-            InitialRateOfOnes = .03, MutationChance = .01;
+            InitialRateOfOnes = .5, MutationChance = .01;
 
         private const int dataDemarcation = 6;
         public static bool UseMWArrayInterface = false;
@@ -216,9 +250,7 @@ namespace EvoOptimization
         public static MLApp.MLApp executor = new MLApp.MLApp();
         private static Process executorProcess;
         public static int totalNumFeatures;
-
-
-
+        internal static int[,] testingYIntArray, trainingYIntArray;
 
         static OptoGlobals()
         {
@@ -229,15 +261,9 @@ namespace EvoOptimization
             Console.WriteLine("Entering OptoGlobals STATIC constructor");
             RNG = new Random(_seed);
 
-            totalNumFeatures = trainingXRaw[0].Count;
 
-            ClassDict = new Dictionary<string, int>();
-            int tempCl = 0;
-            ClassList = new List<string>();
-            tempCl = buildClassListAndDict(tempCl, trainingYRaw);//If Training and Testing sets are configured correctly, the next line is pointless.
-            buildClassListAndDict(tempCl, testingYRaw);
-            //ClassDict is a translator to convert string classes to integers.  ClassList is a list to do the same thing with integers.
-            //ClassList[ClassDict["className"]] is will yield "className", if it is in the dictionary.
+
+
             String MATLABpath = @"./../../../Matlab Scripts/";
             MATLABpath = Path.GetFullPath(MATLABpath);
 
@@ -262,7 +288,7 @@ namespace EvoOptimization
                     ClassList.Add(cat);
                 }
             }
-
+           
             return tempCl;
         }
 
@@ -314,7 +340,7 @@ namespace EvoOptimization
             return ret;
         }
 
-        private static List<String> GetPredictorNames(HashSet<int> columns, bool isBlacklist, string FilePath)
+        private static List<String> GetPredictorNames(HashSet<int> columns, string FilePath)
         {
             List<String> ret = new List<string>();
             string[] headers;
@@ -326,11 +352,8 @@ namespace EvoOptimization
                 headers = line.Split(tokens,StringSplitOptions.RemoveEmptyEntries );
             }
 
-            for (int i = 0; i < headers.Length; ++i) {
-                if (isBlacklist ^ columns.Contains(i)) {//If blacklist and i is in the list, skip.  If whitelist and i is not in the list, skip.  Otherwise, execute thie block:
+            foreach (int i in columns) {
                     ret.Add(headers[i].Trim());
-                }
-                
             }
             return ret;
         }

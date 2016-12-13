@@ -1,0 +1,42 @@
+function [ label, sse, model ] = trainLR( trX, teX, trY, teY,...
+    predictorNames, modelspec,otherArgs )
+%TRAINNB Summary of this function goes here
+%   Detailed explanation goes here
+
+func = @stepwiseglm;
+
+rng(13, 'twister');
+%sprintf('numlearners = %d', numlearners)
+sprintf('length of otherArgs = %d', length(otherArgs))
+switch(length(otherArgs))
+    case 2
+        model = func(trX, trY,modelspec, 'PredictorVars', predictorNames,...
+            otherArgs{1}, otherArgs{2})
+    case 4
+        model = func(trX, trY, modelspec, 'PredictorVars', predictorNames,...
+            otherArgs{1}, otherArgs{2}, otherArgs{3}, otherArgs{4})
+    case 6
+        model = func(trX, trY, modelspec, 'PredictorVars',predictorNames,...
+            otherArgs{1}, otherArgs{2}, otherArgs{3},...
+            otherArgs{4}, otherArgs{5}, otherArgs{6})
+    case 8
+        model = func(trX, trY, modelspec, 'PredictorVars', predictorNames,...
+            otherArgs{1}, otherArgs{2}, otherArgs{3},...
+            otherArgs{4}, otherArgs{5}, otherArgs{6}, otherArgs{7}, otherArgs{8})
+    case 10
+        disp('Made it to case 10')
+        model = func(trX, trY, 'PredictorNames', predictorNames, ...
+            otherArgs{1}, otherArgs{2}, otherArgs{3},...
+            otherArgs{4}, otherArgs{5}, otherArgs{6}, otherArgs{7}, otherArgs{8}, ...
+            otherArgs{9}, otherArgs{10})
+    otherwise
+        model = func(trX, trY, modelspec, 'PredictorVars', predictorNames )
+end
+
+label = predict(model, teX);
+sse = (label - teY).^2;
+
+
+
+
+end

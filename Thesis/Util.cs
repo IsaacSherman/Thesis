@@ -59,10 +59,11 @@ namespace MyUtils
         public static List<List<T>> ArrayTo2dList<T>(T[,] array)
         {
             List<List<T>> ret = new List<List<T>>();
-            for (int i = 0; i < array.GetUpperBound(0); ++i)
+            int rows = array.GetUpperBound(0)+1, cols = array.GetUpperBound(1)+1;
+            for (int i = 0; i < rows; ++i)
             {
                 List<T> temp = new List<T>();
-                for (int j = 0; j < array.GetUpperBound(1); ++j)
+                for (int j = 0; j < cols; ++j)
                 {
                     temp.Add(array[i, j]);
                 }
@@ -74,7 +75,7 @@ namespace MyUtils
         public static T[] Flatten2dArray<T>(T[,] array)
         {
             T[] ret;
-            int dim0Upper = array.GetUpperBound(0), dim1Upper = array.GetUpperBound(1), mainDim, flatDim, len;
+            int dim0Upper = array.GetUpperBound(0)+1, dim1Upper = array.GetUpperBound(1)+1, mainDim, flatDim, len;
             if (dim0Upper == 1 || dim1Upper == 1)//at least one dimension is 1
             {
                 if (dim1Upper == 1)

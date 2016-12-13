@@ -1,16 +1,16 @@
 #Dataset Name
 YeastData
 #Class Names File
-classNames.txt
+../../../Data/Yeast/classNames.txt
 #TrainingSet X Path
-trainingSet.txt
+../../../Data/Yeast/trainingSet.txt
 #TrainingSet Y Path
-trainingSet.txt
+../../../Data/Yeast/trainingSet.txt
 #TestingSet  X Path
-testingSet.txt
+../../../Data/Yeast/testingSet.txt
 #TestingSet  Y Path
-testingSet.txt
+../../../Data/Yeast/testingSet.txt
 #X ignore list, comma separated and starting with w if it's a whitelist (otherwise, blacklist)
 b, 0, 9
 #Y ignore list, as above
-w, 8
+w, 9
