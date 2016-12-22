@@ -515,9 +515,17 @@ namespace MyUtils
             }
             return ret;
         }
+        public static BitArray RerollBitArray(this BitArray a, Random RNG, double prob = .5)
+        {
+            BitArray ret = new BitArray(a.Length);
+            for(int i = 0; i < a.Length; ++i)
+            {
+                ret[i] = RNG.NextDouble() > prob;
+            }
+            return ret;
+        }
     }
 }
 
 
 
-//}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}

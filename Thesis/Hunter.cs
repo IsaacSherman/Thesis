@@ -19,7 +19,7 @@ namespace MyCellNet
     /// </summary>
     public class Hunter : IComparable<Hunter>
     {
-        List<Chromasome> myChromasomes;
+        List<Chromosome> myChromasomes;
         public int NumChromasomes { get { return myChromasomes.Count; } }
         public string tag="";
         public double Fitness = 0;
@@ -30,7 +30,7 @@ namespace MyCellNet
             get
             {
                 double total = 0;
-                foreach (Chromasome x in myChromasomes)
+                foreach (Chromosome x in myChromasomes)
                 {
                     total += x.NumCells;
                 }
@@ -43,10 +43,10 @@ namespace MyCellNet
         }
         public Hunter(int chromanum, int cells = 1)
         {
-            myChromasomes = new List<Chromasome>(chromanum);
+            myChromasomes = new List<Chromosome>(chromanum);
             for (int i = 0; i < chromanum; ++i)
             {
-                myChromasomes.Add(new Chromasome());
+                myChromasomes.Add(new Chromosome());
                 for (int j = 1; j < cells; ++j)
                 {
                     myChromasomes[i].JoinCell(new Cell());
@@ -60,13 +60,13 @@ namespace MyCellNet
             Debug.Assert(myChromasomes.Count != 0);
             for (int i = 0; i < myChromasomes.Count; ++i)
             {
-                BitArray temp = Util.BitsFromInt(Chromasome.ClassBitLength, num++%16);
+                BitArray temp = Util.BitsFromInt(Chromosome.ClassBitLength, num++%16);
                 myChromasomes[i].ClassBits = temp;
 
             }
         }
 
-        protected Hunter(Chromasome x)
+        protected Hunter(Chromosome x)
         {
             initChromasomes();
             myChromasomes.RemoveAt(0);
@@ -76,7 +76,7 @@ namespace MyCellNet
         public Hunter EliteCopy()
         {
             Hunter ret = new Hunter().StripChromasomes();//initializes everything, empties chromosome
-            foreach (Chromasome x in myChromasomes)
+            foreach (Chromosome x in myChromasomes)
             {
                 ret.myChromasomes.Add(x.deepCopy());
             }
@@ -84,7 +84,7 @@ namespace MyCellNet
 
         }
 
-        public void AddChromasome(Chromasome x)
+        public void AddChromasome(Chromosome x)
         {
             x.updateCellNum();
             myChromasomes.Add(x.deepCopy());
@@ -92,8 +92,8 @@ namespace MyCellNet
         }
         private void initChromasomes()
         {
-            myChromasomes = new List<Chromasome>();
-            Chromasome temp = new Chromasome();
+            myChromasomes = new List<Chromosome>();
+            Chromosome temp = new Chromosome();
             myChromasomes.Add(temp);
             temp.updateCellNum();
 
@@ -111,14 +111,14 @@ namespace MyCellNet
             int firstNum = first.NumChromasomes, secondNum = second.NumChromasomes;
             int min = Math.Min(firstNum, secondNum);
             Hunter ret;
-            Chromasome[] temp;
+            Chromosome[] temp;
             //Step through, merging each pair, until we run out of matched pairs
-            temp = Chromasome.Merge(first.myChromasomes[0], second.myChromasomes[0]);
+            temp = Chromosome.Merge(first.myChromasomes[0], second.myChromasomes[0]);
             ret = new Hunter().StripChromasomes();
             for (int i = 0; i < min; i++)
             {
                 if (ret.Complexity > OptoGlobals.ComplexityCap) break;
-                foreach (Chromasome x in temp)
+                foreach (Chromosome x in temp)
                 {
                     ret.AddChromasome(x);
                     if (ret.Complexity > OptoGlobals.ComplexityCap) return ret;
@@ -198,7 +198,7 @@ namespace MyCellNet
         public string Serialize()
         {
             string ret = "Chromasomes:";
-            foreach (Chromasome x in myChromasomes)
+            foreach (Chromosome x in myChromasomes)
             {
                 ret += x.Serialize();
                 
@@ -221,7 +221,7 @@ namespace MyCellNet
             ret[1] = new Hunter().StripChromasomes();
 
             Hunter target = ret[0], notTarget = ret[1], mostChromosomes;
-            Chromasome[] temp = new Chromasome[2];//If a has 7 chromasomes, and b has 3,
+            Chromosome[] temp = new Chromosome[2];//If a has 7 chromasomes, and b has 3,
             //we want to end as soon as either fails
             //So if a and b both have count 3, a is true, but b is false, so the comparison fails
             List<int> aCrossed = new List<int>(a.myChromasomes.Count), bCrossed = new List<int>(b.myChromasomes.Count);
@@ -235,7 +235,7 @@ namespace MyCellNet
                     {
                         //Trying a form of uniform crossover, 2 point
                         //just swapping chromosomes, not crossing over at that level
-                        temp = Chromasome.CrossOver(a[i], b[i]);
+                        temp = Chromosome.CrossOver(a[i], b[i]);
                         target.AddChromasome(a[i]);
                         notTarget.AddChromasome(b[i]);
                         aCrossed.Add(i);
@@ -274,7 +274,7 @@ namespace MyCellNet
                     {
                         //Trying a form of uniform crossover, 2 point
                         //just swapping chromosomes, not crossing over at that level
-                        temp = Chromasome.CrossOver(a[i], b[i]);
+                        temp = Chromosome.CrossOver(a[i], b[i]);
                         target.AddChromasome(temp[0]);
                         notTarget.AddChromasome(temp[1]);
                         aCrossed.Add(i);
@@ -287,7 +287,7 @@ namespace MyCellNet
                     {
                         //Trying a form of uniform crossover, 2 point
                         //just swapping chromosomes, not crossing over at that level
-                        temp = Chromasome.CrossOver(a[i], b[i]);
+                        temp = Chromosome.CrossOver(a[i], b[i]);
                         target.AddChromasome(temp[0]);
                         notTarget.AddChromasome(temp[1]);
                         aCrossed.Add(i);
@@ -315,7 +315,7 @@ namespace MyCellNet
                         int i = GetUnpickedInt(a, aCrossed);
                         int j = GetUnpickedInt(b, bCrossed);
                         if (OptoGlobals.RNG.NextDouble() <= OptoGlobals.CrossoverChance) switchTargets(ret[0], ret[1], ref target, ref notTarget);
-                        temp = Chromasome.CrossOver(a[i], b[j]);
+                        temp = Chromosome.CrossOver(a[i], b[j]);
                         target.AddChromasome(temp[0]);
                         notTarget.AddChromasome(temp[1]);
                         aCrossed.Add(i);
@@ -377,13 +377,13 @@ namespace MyCellNet
 
         Hunter updateCellNum()
         {
-            foreach (Chromasome x in myChromasomes)
+            foreach (Chromosome x in myChromasomes)
             {
                 x.updateCellNum();
             }
             return this;
         }
-        public Chromasome this[int index]
+        public Chromosome this[int index]
         {
             get
             {
@@ -418,7 +418,7 @@ namespace MyCellNet
             {
                 string ret = "";
                 int count = 1;
-                foreach (Chromasome x in myChromasomes)
+                foreach (Chromosome x in myChromasomes)
                 {
                     ret += "Chromosome " + count++ + ":";
                     ret += x.DisplayText;
@@ -430,7 +430,7 @@ namespace MyCellNet
 
         public void Mutate()
         {
-            foreach (Chromasome x in myChromasomes)
+            foreach (Chromosome x in myChromasomes)
             {
                 x.Mutate();
             }
@@ -454,7 +454,7 @@ namespace MyCellNet
 
         internal void resetAffinity()
         {
-            foreach (Chromasome x in myChromasomes)
+            foreach (Chromosome x in myChromasomes)
             {
                 x.resetAffinityBits();
             }
@@ -466,7 +466,7 @@ namespace MyCellNet
             {
                 StringBuilder ret = new StringBuilder();
                 ret.AppendLine("This hunter has the following " + myChromasomes.Count + " chromosome" + (myChromasomes.Count == 1 ? ":" : "s:"));
-                foreach (Chromasome x in myChromasomes)
+                foreach (Chromosome x in myChromasomes)
                 {
                     ret.AppendLine(x.HumanReadableChromosome());
                 }

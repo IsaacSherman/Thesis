@@ -59,8 +59,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cell.cs" />
-    <Compile Include="Chromasome.cs" />
+    <Compile Include="Chromosome.cs" />
     <Compile Include="ConfusionMatrix.cs" />
+    <Compile Include="Daedalus.cs" />
+    <Compile Include="DelegateBuilder.cs" />
     <Compile Include="EvoOptimizer.cs" />
     <Compile Include="EvoOptimizerProgram.cs" />
     <Compile Include="Hunter.cs" />

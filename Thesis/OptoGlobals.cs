@@ -57,30 +57,30 @@ namespace EvoOptimization
 
 
             }
-            trainingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, false) as List<List<Double>>;
+            TrainingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, false) as List<List<Double>>;
             NumberOfFeatures = xCols.Count;
-            trainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, false) as List<List<String>>;
-            trainingYString = Util.TwoDimListToSmoothArray(trainingYRaw);
-            testingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, true) as List<List<Double>>;
-            testingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, true) as List<List<String>>;
-            testingYString = Util.TwoDimListToSmoothArray(testingYRaw);
+            TrainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, false) as List<List<String>>;
+            TrainingYString = Util.TwoDimListToSmoothArray(TrainingYRaw);
+            TestingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, true) as List<List<Double>>;
+            TestingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, true) as List<List<String>>;
+            TestingYString = Util.TwoDimListToSmoothArray(TestingYRaw);
 
-            allPredictorNames = GetPredictorNames(xCols, trXPath);
-            if (trainingXRaw == null || testingXRaw == null || trainingYRaw == null || testingYRaw == null)
+            AllPredictorNames = GetPredictorNames(xCols, trXPath);
+            if (TrainingXRaw == null || TestingXRaw == null || TrainingYRaw == null || TestingYRaw == null)
             {
                 Console.WriteLine("Something went horribly wrong loading data, one or more of the datasets is null.  Could be a bad path.");
                 throw new InvalidCastException();
             }
             int tempCl = 0;
-            totalNumFeatures = trainingXRaw[0].Count;
+            NumberOfFeatures = TrainingXRaw[0].Count;
             ClassDict = new Dictionary<string, int>();
             ClassList = new List<string>();
-            tempCl = buildClassListAndDict(tempCl, trainingYRaw);//If Training and Testing sets are configured correctly, the next line is pointless.
-            buildClassListAndDict(tempCl, testingYRaw);
+            tempCl = buildClassListAndDict(tempCl, TrainingYRaw);//If Training and Testing sets are configured correctly, the next line is pointless.
+            buildClassListAndDict(tempCl, TestingYRaw);
 
-            testingYIntArray =  intArrayFromStringList(testingYRaw);
+            testingYIntArray =  intArrayFromStringList(TestingYRaw);
 
-            trainingYIntArray = intArrayFromStringList(trainingYRaw);
+            trainingYIntArray = intArrayFromStringList(TrainingYRaw);
 
             NumberOfClasses = ClassList.Count;
 
@@ -241,15 +241,14 @@ namespace EvoOptimization
         public static bool UseMWArrayInterface = false;
 
         public static Dictionary<String, int> ClassDict;
-        public static List<String> ClassList, dataHeaders, yHeaders, allPredictorNames;
-        public static List<List<Double>> trainingXRaw, testingXRaw;
-        public static List<List<String>> trainingYRaw, testingYRaw;
-        public static bool[,] trainingYRawLogical, testingYRawLogical;
+        public static List<String> ClassList, DataHeaders, yHeaders, AllPredictorNames;
+        public static List<List<Double>> TrainingXRaw, TestingXRaw;
+        public static List<List<String>> TrainingYRaw, TestingYRaw;
+        public static bool[,] TrainingYRawLogical, TestingYRawLogical;
         public static double[,] TrX, TeX;
-        public static String[,] trainingYString, testingYString;
+        public static String[,] TrainingYString, TestingYString;
         public static MLApp.MLApp executor = new MLApp.MLApp();
-        private static Process executorProcess;
-        public static int totalNumFeatures;
+        private static Process ExecutorProcess;
         internal static int[,] testingYIntArray, trainingYIntArray;
 
         static OptoGlobals()
@@ -299,7 +298,7 @@ namespace EvoOptimization
             {
                 if (x.MainWindowTitle.Equals("MATLAB Command Window"))
                 {
-                    executorProcess = x;
+                    ExecutorProcess = x;
                     break;
                 }
             }
@@ -397,7 +396,7 @@ namespace EvoOptimization
             using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(p, FileMode.Open))))
             {
                 String line = fin.ReadLine();
-                if (getHeaders) dataHeaders = extractHeadersFromFirstLine(line);
+                if (getHeaders) DataHeaders = extractHeadersFromFirstLine(line);
 
                 while (!fin.EndOfStream)
                 {

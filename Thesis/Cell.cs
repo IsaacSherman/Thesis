@@ -47,6 +47,13 @@ namespace MyCellNet
         /// </summary>
         static Cell()
         {
+            reinforceConstantRelations();
+            initDelegatesAndNames();
+
+        }
+
+        private static void reinforceConstantRelations()
+        {
             _notFlagStart = 0;
             _functionStart = _notFlagStart + _notFlagLength;
             NumberOfFunctions = OptoGlobals.ClassDict.Keys.Count;
@@ -56,10 +63,8 @@ namespace MyCellNet
             _joinBitStart = _uLimitStart + limitLength;
             CellLength = _joinBitStart + _notFlagLength;
             functions = new DataDelegate[NumberOfFunctions];
-            initDelegatesAndNames();
 
         }
-
 
         protected void rerollBits(int start, int end)
         {
@@ -76,7 +81,6 @@ namespace MyCellNet
         BitArray _bits = new BitArray(CellLength);
         
 
-        public Cell NextCell = null;
         public delegate double DataDelegate(object data);
         
         public static DataDelegate[] functions;
@@ -85,13 +89,17 @@ namespace MyCellNet
         
         private static void initDelegatesAndNames()
         {
-
+            functions = new DataDelegate[OptoGlobals.NumberOfFeatures];
+            for(int i = 0; i < OptoGlobals.NumberOfFeatures; ++i)
+            {
+                functions[i] = DelegateBuilder.SimpleLookup(i);
+            }
         }
 
         public Cell(BitArray newBits, Cell nextCell)
         {
             _bits = new BitArray(newBits);
-            addCell(nextCell);
+            //addCell(nextCell);
             ErrorCheck();
         }
 
@@ -166,15 +174,13 @@ namespace MyCellNet
                 return lLimit;
             }
         }
-        internal  bool joinBit
+
+        public bool JoinBit
         {
-            get { return _bits[_joinBitStart]; }
-            set { _bits[_joinBitStart] = value; }
+            get { return _bits[_bits.Count - 1]; }
+            set { _bits[_bits.Count - 1] = value; }
+
         }
-
-        public bool JoinBit { get { return joinBit; } }
-
-
 
         //Member functions
 
@@ -194,7 +200,6 @@ namespace MyCellNet
                 _bits = new BitArray(temp._bits);
 
             }
-            NextCell = null;//Do not copy the other cells in line
             evalLimits();
             ErrorCheck();
 
@@ -206,35 +211,35 @@ namespace MyCellNet
             {
                 _bits[i] =  (OptoGlobals.RNG.Next() % 2 == 1 ? true : false);
             }
-            joinBit = false;//just make 1 cell
+            JoinBit = true;
             ErrorCheck();
         }
-        /// <summary>
-        /// Attaches the Cell other to this one in the list (if a cell is already in line, it gets tacked onto the end).  Joinbit is set.
-        /// </summary>
-        /// <param name="other"></param>
-        public void joinCell(Cell other)
-        {
-            if (NextCell == null)//If this is the last cell in the chain
-            {
-                NextCell = other;
-                joinBit = true;
-            }
-            else//if not, pass it down to the next cell
-                NextCell.joinCell(other);
-        }
-        /// <summary>
-        /// Identical to joinCell, but the join bit is not altered
-        /// </summary>
-        /// <param name="other"></param>
-        public void addCell(Cell other)
-        {
-            if (NextCell == null)//If this is the last cell in the chain
-                NextCell = other;
-            else//if not, pass it down to the next cell
-                NextCell.addCell(other);
-            ++numCells;
-        }
+        ///// <summary>
+        ///// Attaches the Cell other to this one in the list (if a cell is already in line, it gets tacked onto the end).  Joinbit is set.
+        ///// </summary>
+        ///// <param name="other"></param>
+        //public void joinCell(Cell other)
+        //{
+        //    if (NextCell == null)//If this is the last cell in the chain
+        //    {
+        //        NextCell = other;
+        //        joinBit = true;
+        //    }
+        //    else//if not, pass it down to the next cell
+        //        NextCell.joinCell(other);
+        //}
+        ///// <summary>
+        ///// Identical to joinCell, but the join bit is not altered
+        ///// </summary>
+        ///// <param name="other"></param>
+        //public void addCell(Cell other)
+        //{
+        //    if (NextCell == null)//If this is the last cell in the chain
+        //        NextCell = other;
+        //    else//if not, pass it down to the next cell
+        //        NextCell.addCell(other);
+        //    ++numCells;
+        //}
         private void evalLimits()
         {
 
@@ -268,15 +273,6 @@ namespace MyCellNet
                 return;
             }
 
-            Cell temp = this;
-            int count = 0;
-            while (temp != null)
-            {
-                temp = temp.NextCell;
-                count++;
-                if (count < 0)
-                    throw new Exception("Infinite Loop in Cell");
-            }
         }
 
 
@@ -358,7 +354,7 @@ namespace MyCellNet
 
             }
             ErrorCheck();//If upper limit <= lower limit, fix it
-            if (NextCell != null) NextCell.Mutate();
+//            if (NextCell != null) NextCell.Mutate();
         }
 
 
@@ -400,18 +396,9 @@ namespace MyCellNet
         /// <returns>A new Cell which is a deep copy of this</returns>
         public Cell DeepCopy()
         {
+            ErrorCheck();//Don't want to copy errors inadvertently
             Cell ret = new Cell(this);
             Cell temp = this, retTemp = ret;
-            while (temp != null)
-            {
-                //iterate through temp, assign retTemp, then increment retTemp
-                if (temp.NextCell != null) retTemp.NextCell = new Cell(temp.NextCell);
-                temp = temp.NextCell;
-                retTemp = retTemp.NextCell;
-            }
-
-            ret.ErrorCheck();
-            this.ErrorCheck();
             return ret;
         }
         /// <summary>
@@ -429,10 +416,16 @@ namespace MyCellNet
             return ret.ToString();
             }
 
+        internal static void SetNumberOfFeatures()
+        {
+            NumberOfFunctions = OptoGlobals.NumberOfFeatures;
+            reinforceConstantRelations();
+        }
 
 
 
-#endregion
+
+        #endregion
 
 
     }

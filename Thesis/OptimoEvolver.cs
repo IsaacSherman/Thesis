@@ -13,7 +13,7 @@ namespace EvoOptimization
         public enum CrossoverType { Uniform, OnePoint, TwoPoint };
         protected Dictionary<String, Tuple<Double, Double>> _lookup;
         protected bool FocusOnAllColumns = false;
-
+        public String FileStem;
         CrossoverType _cross;
         public bool ReadInCurrentGeneration = false;
         protected int _popSize, generation;
@@ -25,7 +25,7 @@ namespace EvoOptimization
         public List<double> AverageFitnessTracker = new List<double>(), BestFitnessTracker = new List<double>();
 
         protected string _outputPath, _currentGenPath;
-        public OptimoEvolver(int PopSize, CrossoverType xType, bool loadFromFile = false)
+        public OptimoEvolver(int PopSize, CrossoverType xType, string fileStem, bool loadFromFile = false)
         {
             ReadInCurrentGeneration = loadFromFile;
             CountFeatures = OptoGlobals.IsDebugMode;
@@ -34,12 +34,13 @@ namespace EvoOptimization
             _cross = xType;
             _popSize = PopSize;
             _population = new List<T>(_popSize);
+            FileStem = fileStem;
             for (int i = 0; i < _popSize; ++i)
             {
                 _population.Add(new T());
             }
-            _outputPath = "OutputTable" + _population[0].GetToken + ".csv";
-            _currentGenPath = "CurrentGenPop" + _population[0].GetToken + ".csv";
+            _outputPath = "OutputTable" + FileStem + ".csv";
+            _currentGenPath = "CurrentGenPop" + FileStem + ".csv";
             _lookup = new Dictionary<string, Tuple<Double,Double>>();
             if (File.Exists(_outputPath)) readLookupFromFile();
             else File.Create(_outputPath);
@@ -137,6 +138,7 @@ namespace EvoOptimization
 
         public void SetPopToAllCols()
         {
+            FocusOnAllColumns = true;
             foreach (T opto in _population) opto.AllColumns();
         }
 
@@ -147,7 +149,7 @@ namespace EvoOptimization
         }
 
         public OptimoEvolver()
-            : this(50, CrossoverType.Uniform)
+            : this(50, CrossoverType.Uniform, "Generic")
         { }
 
         public void AdvanceGeneration()
@@ -161,7 +163,26 @@ namespace EvoOptimization
             CompactNonElites();
             GenerateNextGeneration();
             if (FocusOnAllColumns) SetPopToAllCols();
+            RemoveDuplicatesFromPopulation();
             ++generation;
+        }
+
+        private void RemoveDuplicatesFromPopulation()///This is somewhat intensive, but it shouldn't be invoked terribly often
+        {
+            HashSet<String> popStrings = new HashSet<string>();
+            for (int i = 0; i < _popSize; ++i)
+            {
+                T x = Population[i];
+                while (!popStrings.Add(x.ToString()))
+                {
+                    x = new T();
+                    x.AllColumns();
+                    x.Prepare();
+                    x.Eval();
+                    Population[i] = x;
+                }
+
+            }
         }
 
         private void getMetrics()
@@ -378,11 +399,11 @@ namespace EvoOptimization
         {
             if (!CountFeatures) return "Not Counting Features";
             StringBuilder ret = new StringBuilder();
-            int startingColumn = OptoGlobals.dataHeaders.Count - OptoGlobals.NumberOfFeatures;
+            int startingColumn = OptoGlobals.DataHeaders.Count - OptoGlobals.NumberOfFeatures;
             ret.Append("Generation,");
             for (int i = 0; i < OptoGlobals.NumberOfFeatures; ++i)
             {
-                ret.Append(OptoGlobals.dataHeaders[startingColumn + i] + ",");
+                ret.Append(OptoGlobals.DataHeaders[startingColumn + i] + ",");
             }
             ret.AppendLine();
 
@@ -414,7 +435,7 @@ namespace EvoOptimization
                     _population[0].DumpCVLabelsToStream(fout2);
             }
                     DumpLookupFailSafe(output);
-            using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create(Population[0].GetToken + "CumulativeFitness.csv"))))
+            using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create(FileStem + "CumulativeFitness.csv"))))
             {
 
                 StringBuilder genLine = new StringBuilder("Generation:,"), avgLine = new StringBuilder("Average Fitness:,"), bestLine = new StringBuilder("Best Fitness:,");

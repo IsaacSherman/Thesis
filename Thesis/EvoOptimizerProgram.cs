@@ -141,6 +141,10 @@ namespace EvoOptimization
             }
         }
 
+        public bool IncludeAllFeatures { get; private set; }
+
+        public string OutputFileStem { get; private set; }
+
 
         /// <summary>
         /// Convenience function, Calls ConfigureEvolver() then Run();
@@ -164,7 +168,9 @@ namespace EvoOptimization
         /// </summary>
         public void ConfigureEvolver()
         {
-            D = new OptimoEvolver<T>(_popSize, _crossOverType, !_noload);
+
+            if (OutputFileStem == null)  OutputFileStem = new T().GetToken;
+            D = new OptimoEvolver<T>(_popSize, _crossOverType, OutputFileStem ,!_noload);
             LoadBestFromFile(_bestFilePath);
             int q = 1;
             Stopwatch sw = new Stopwatch();
@@ -173,9 +179,7 @@ namespace EvoOptimization
                 D.AddToPopulation(o, q++);
             }
             D.MultiThread = _multiThread;
-            
-
-
+            if (IncludeAllFeatures) D.SetPopToAllCols();
             
         }
 
@@ -209,15 +213,19 @@ namespace EvoOptimization
 
             if (_outputBaseline)
             {
+                //Run a simulation including all features to find the best combination of parameters for the particular classifier
                 T baseline = new T();
-                string basePath = baseline.GetToken + "BaseLine.csv";
-                baseline.SetBitsToString(new string('0', baseline.Bits.Length));
-                baseline.Prepare();
-                baseline.Eval();
-                using (StreamWriter baseFout = new StreamWriter(new FileStream(basePath, FileMode.Create)))
-                {
-                    baseline.DumpLabelsToStream(baseFout);
-                }
+                string basePath = baseline.GetToken + "Baseline";
+                EvoOptimizerProgram<T> baseProgram = new EvoOptimizerProgram<T>();
+                baseProgram.MaxGen = 100;
+                baseProgram.SaveAfterGens = 25;
+                baseProgram.PopSize = 50;
+                baseProgram.IncludeAllFeatures = true;
+                baseProgram.OutputFileStem = basePath;
+                baseProgram.Noload = true;
+                baseProgram._outputBaseline = false;
+                baseProgram.ConfigureAndRun();
+               
             }
 
             Stopwatch sw = new Stopwatch();
@@ -237,10 +245,10 @@ namespace EvoOptimization
                     count += 1;
                 }
                 Console.WriteLine("Best Fitness = " + D.Population[0].Fitness + " \n Average fitness = " + D.AverageFitness);
-                if (x % _saveAfterGens == 0) D.DumpLookupToFile(D.Population[0].GetToken + x + ".csv");
+                if (x % _saveAfterGens == 0) D.DumpLookupToFile(OutputFileStem + x + ".csv");
                 sw.Reset();
             }
-            D.DumpLookupToFile(D.Population[0].GetToken + "FinalTable.csv");
+            D.DumpLookupToFile(OutputFileStem + "FinalTable.csv");
             Console.ReadLine();
         }
     }

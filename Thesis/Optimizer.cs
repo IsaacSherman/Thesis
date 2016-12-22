@@ -86,8 +86,8 @@ namespace EvoOptimization
             {
                 _bits[i] = false;
             }
-            myTeX = OptoGlobals.testingXRaw;
-            myTrX = OptoGlobals.trainingXRaw;
+            myTeX = OptoGlobals.TestingXRaw;
+            myTrX = OptoGlobals.TrainingXRaw;
 
         }
         protected ConfusionMatrix _confuMat;
@@ -266,19 +266,19 @@ protected static List<int> extractNumericLabels(String blockString)
                 }
                 else
                 {
-                    myTeX = new List<List<double>>(OptoGlobals.testingXRaw);
-                    myTrX = new List<List<double>>(OptoGlobals.trainingXRaw);
-                    myBaseLabels = OptoGlobals.allPredictorNames.ToArray();
+                    myTeX = new List<List<double>>(OptoGlobals.TestingXRaw);
+                    myTrX = new List<List<double>>(OptoGlobals.TrainingXRaw);
+                    myBaseLabels = OptoGlobals.AllPredictorNames.ToArray();
                 }
                 return;
             }
 
-            List<List<Double>> baseMatrix = OptoGlobals.trainingXRaw;
+            List<List<Double>> baseMatrix = OptoGlobals.TrainingXRaw;
 
-            myTeX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.testingXRaw));
-            myTrX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.trainingXRaw));
+            myTeX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.TestingXRaw));
+            myTrX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.TrainingXRaw));
 
-            myBaseLabels = reduceLabels(cols, OptoGlobals.allPredictorNames);
+            myBaseLabels = reduceLabels(cols, OptoGlobals.AllPredictorNames);
 
 
         }

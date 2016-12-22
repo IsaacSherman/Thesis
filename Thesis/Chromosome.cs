@@ -19,7 +19,7 @@ namespace MyCellNet
     ///     These bits get ORed together in the breeding process to determine whether the resulting offspring is horizontal or vertical.
     ///     Vertical cells move into separate chromasomes, horizontal cells combine using AND or AND NOT. 
     /// </summary>
-    public class Chromasome
+    public class Chromosome
     {
         /// <summary>
         /// Various values for styles of crossover.
@@ -33,7 +33,6 @@ namespace MyCellNet
         {
             dontCare = 0, last = 1, first = 2, complete = 3
         }
-        private int numCells;
         public int ClassIndex
         {
             get
@@ -45,7 +44,7 @@ namespace MyCellNet
         {
             get
             {
-                return numCells;
+                return cells.Count;
             }
         }
         static public BitArray AffinityBitsFromAffinity(Affinities a)
@@ -72,14 +71,15 @@ namespace MyCellNet
             }
             return ret;
         }
-        const int affinityBitLength = 2;
-        public const int AffinityBitLength = affinityBitLength, ClassBitLength = classBitLength;
-        const int classBitLength = 4;
+        const int _affinityBitLength = 2;
+        public static int AffinityBitLength{get{ return _affinityBitLength; } }
+        static int _classBitLength = 4;
+        public static int ClassBitLength { get { return _classBitLength; } }
         bool notFlag;
         double mutability = 1.0d / Cell.CellLength;
         BitArray affinityBits;
         BitArray classBits; // Just one right now, but probably more to come (hence, bitArray and not bool)
-        Cell cell; //Cells are effectively a list
+        List<Cell> cells;
         /// <summary>
         /// Convenience accessor for 0 indexed cells, 0 being Chromosome->cell
         /// </summary>
@@ -89,37 +89,47 @@ namespace MyCellNet
         {
             get
             {
-                return this.GetCell(index);
+                return cells[index];
 
             }
         }
         private Cell GetCell(int p)
         {
-            if (p > numCells) throw new ArgumentOutOfRangeException("Cell is out of range");
-            Cell ret = cell;
-            for (int i = 0; i < p; ++i)
-            {
-                ret = ret.NextCell;
-            }
-            return new Cell(ret);
+            return cells[p];
         }
-        public Chromasome(BitArray aff, BitArray cla)
+
+        public Chromosome(BitArray aff, BitArray cla)
         {
             
             affinityBits = new BitArray(aff);
+            if(cla.Length != ClassBitLength)
+            {
+                classBits = new BitArray(ClassBitLength);
+                for (int i = 0; i < _classBitLength; ++i)
+                    classBits[i] = cla[i];
+                ErrorCheck();
+            }
             classBits = new BitArray(cla);
         }
         public void AddCell(Cell a)
         {
 
-            if (cell == null) initWithCell(a);
-            else cell.addCell(a);
+            if (cells == null) initWithCell(a);
+            else cells.Add(a);
            
+        }
+
+
+        internal static void SetNumberOfClasses()
+        {
+            _classBitLength = (int) Math.Ceiling(Math.Log(OptoGlobals.NumberOfClasses, 2));
+
         }
 
         private void initWithCell(Cell a)
         {
-            cell = new Cell(a);
+            cells = new List<Cell>();
+            cells.Add(new Cell(a));
         }
         public string Serialize()
         {
@@ -129,11 +139,8 @@ namespace MyCellNet
             for (int i = 0; i < classBits.Length; ++i) ret.Append(classBits[i] == true ? "1" : "0");
             ret.Append("Not: " + (notFlag ? "1 " : "0 "));
             ret.Append(string.Format("Cells:{0}", Environment.NewLine));
-            Cell temp = cell;
-            while (temp != null)
-            {
+            foreach(Cell temp in cells){
                 ret.Append(temp.Serialize() + " ");
-                temp = temp.NextCell;
             }
             ret.Append("endChromasome|"+Environment.NewLine);
 
@@ -168,32 +175,35 @@ namespace MyCellNet
         /// default constructor, really shouldn't be used outside of testing- 
         /// instead, supply your own Random.
         /// </summary>
-        public Chromasome()
+        public Chromosome()
         {
             init();
         }
-        public Chromasome(Cell a)
+        public Chromosome(Cell a)
         {
             initArrays();
-            cell = a;
+            initWithCell(a);
         }
         /// <summary>
         /// Initialize the BitArrays
         /// </summary>
         private void initArrays()
         {
-            affinityBits = new BitArray(affinityBitLength);
-            for (int i = 0; i < affinityBitLength; i++) affinityBits[i] = (OptoGlobals.RNG.Next() % 2 == 1 ? true : false);
-            classBits = new BitArray(classBitLength);
-            for (int i = 0; i < classBitLength; i++) classBits[i] = (OptoGlobals.RNG.Next() % 2 == 1 ? true : false);
+
+            affinityBits = new BitArray(_affinityBitLength);
+            classBits = new BitArray(_classBitLength);
+            affinityBits = affinityBits.RerollBitArray(OptoGlobals.RNG);
+            classBits = classBits.RerollBitArray(OptoGlobals.RNG);
+
             notFlag = OptoGlobals.RNG.Next() % 2 == 1 ? true : false;
+            ErrorCheck();
         }
         /// <summary>
         /// Initialize the Cell
         /// </summary>
         private void initCell()
         {
-            cell = new Cell();
+            initWithCell(new Cell());
         }
         /// <summary>
         /// Initialize the Chromosome
@@ -203,7 +213,15 @@ namespace MyCellNet
             initCell();
             initArrays();
             updateCellNum();
+            ErrorCheck();
         }
+
+        private void ErrorCheck()
+        {
+            if (classBits.BitsToString().BinaryStringToInt() > OptoGlobals.NumberOfClasses) classBits = classBits.RerollBitArray(OptoGlobals.RNG);
+            ErrorCheck();
+        }
+
         /// <summary>
         /// Parse the instructions in the component cells and return a bool representing the vote
         /// </summary>
@@ -212,15 +230,12 @@ namespace MyCellNet
         {
             double lowest = ret = double.PositiveInfinity;
             bool vote = true;
-            Cell current = cell;
+           
             int returnVal = classBits.BitsToString().BinaryStringToInt();
-            while (current != null)//step through the cells
-            {
+foreach(Cell current in cells)            {
                 vote = vote && current.Vote(data, out ret, cutoff);
                 ret = Math.Min(ret, lowest);
-                if (vote == false) break;
-                if (current.JoinBit == false) break;//If a join bit is turned off, break the vote
-                current = current.NextCell;
+                if (vote == false || current.JoinBit) break;
             }
             if (NotFlag == true) vote = !vote;
             if (vote) return returnVal;
@@ -254,18 +269,18 @@ namespace MyCellNet
         /// <param name="a">Chromosome A(above)</param>
         /// <param name="b">Chromosome B(above)</param>
         /// <returns></returns>
-        public static Chromasome[] Merge(Chromasome a, Chromasome b)
+        public static Chromosome[] Merge(Chromosome a, Chromosome b)
         {
 
             Affinities aAffinity = (Affinities)a.affinityBits.BitsToString().BinaryStringToInt();
             Affinities bAffinity = (Affinities)b.affinityBits.BitsToString().BinaryStringToInt();
             BitArray result = AffinityBitsFromAffinity(aAffinity | bAffinity);
             Affinities order = aAffinity | bAffinity;
-            Chromasome[] ret;
+            Chromosome[] ret;
             if (aAffinity == Affinities.complete || bAffinity == Affinities.complete ||
                 (aAffinity == bAffinity && bAffinity != Affinities.dontCare))
             {//if both are competing for the same position, vertical
-                ret = new Chromasome[2];
+                ret = new Chromosome[2];
                 ret[0] = a.deepCopy();
 
                 ret[1] = b.deepCopy();
@@ -273,18 +288,18 @@ namespace MyCellNet
             }
             else if (bAffinity == Affinities.first || aAffinity == Affinities.last)
             {  //B and [not] A
-                ret = new Chromasome[1];
-                ret[0] = new Chromasome(b.cell.DeepCopy());
-                ret[0].cell.joinCell(a.cell.DeepCopy());
+                ret = new Chromosome[1];
+                ret[0] = new Chromosome(b.cells);
+                ret[0] = JoinCells(ret[0], a);
                 ret[0].affinityBits = AffinityBitsFromAffinity(bAffinity);
                 ret[0].classBits = b.classBits;
                 ret[0].updateCellNum();
             }
             else
             {
-                ret = new Chromasome[1];
-                ret[0] = new Chromasome(a.cell.DeepCopy());
-                ret[0].cell.joinCell(b.cell.DeepCopy());
+                ret = new Chromosome[1];
+                ret[0] = new Chromosome(a.cells);
+                ret[0]= JoinCells(ret[0], b);
                 ret[0].affinityBits = AffinityBitsFromAffinity(aAffinity);
                 ret[0].classBits = a.classBits;
                 ret[0].updateCellNum();
@@ -295,12 +310,25 @@ namespace MyCellNet
 
         }
 
-        public Chromasome deepCopy()
+        private static Chromosome JoinCells(Chromosome chromosome, Chromosome append)
         {
-            Chromasome ret = new Chromasome();
+            Chromosome ret = new Chromosome(chromosome.cells);
+            foreach (Cell a in append.cells)
+            {
+                ret.cells.Add(a);
+            }
+            return ret;
+        }
+
+        public Chromosome deepCopy()
+        {
+            Chromosome ret = new Chromosome();
             ret.classBits = new BitArray(classBits);
             ret.affinityBits = new BitArray(affinityBits);
-            ret.cell = cell.DeepCopy();
+            foreach(Cell x in cells)
+            {
+                ret.AddCell(x);
+            }
             ret.updateCellNum();
             ret.notFlag = NotFlag;
             return ret;
@@ -309,14 +337,14 @@ namespace MyCellNet
         //Evolution Related functions:
         public void Mutate()
         {
-            for (int i = 0; i < classBitLength; ++i)
+            for (int i = 0; i < _classBitLength; ++i)
             {
                 if (OptoGlobals.RNG.NextDouble() <= mutability)
                 {
                     classBits[i] = !classBits[i];
                 }
             }
-            for (int i = 0; i < affinityBitLength; ++i)
+            for (int i = 0; i < _affinityBitLength; ++i)
             {
                 if (OptoGlobals.RNG.NextDouble() <= mutability)
                 {
@@ -324,11 +352,11 @@ namespace MyCellNet
                 }
             }
             if (OptoGlobals.RNG.NextDouble() <= mutability) notFlag = !notFlag;
-            this.cell.Mutate();
+            foreach(Cell cell in cells)  cell.Mutate();
         }
-        private static void CrossChromaSpecificBits(Chromasome a, Chromasome b, ref Chromasome target, ref Chromasome notTarget, Chromasome[] ret)
+        private static void CrossChromoSpecificBits(Chromosome a, Chromosome b, ref Chromosome target, ref Chromosome notTarget, Chromosome[] ret)
         {
-            for (int i = 0; i < classBitLength; i++)//The chromosome info makes sense to worry about order, wrt class/affinity bits
+            for (int i = 0; i < _classBitLength; i++)//The chromosome info makes sense to worry about order, wrt class/affinity bits
             {
                 if (OptoGlobals.RNG.NextDouble() <= OptoGlobals.CrossoverChance)
                     Util.switchTargets(a, b, ref target, ref notTarget);
@@ -336,7 +364,7 @@ namespace MyCellNet
                 ret[0].classBits[i] = target.classBits[i];
                 ret[1].classBits[i] = notTarget.classBits[i];
             }
-            for (int i = 0; i < affinityBitLength; i++)
+            for (int i = 0; i < _affinityBitLength; i++)
             {
                 if (OptoGlobals.RNG.NextDouble() <= OptoGlobals.CrossoverChance)
                     Util.switchTargets(a, b, ref target, ref notTarget);
@@ -351,27 +379,22 @@ namespace MyCellNet
         }
         private void JoinAllCells()
         {
-            Cell temp = cell;
-            while (temp.NextCell != null)
-            {
-                temp.joinBit = true;
-                temp = temp.NextCell;
-            }
+            foreach (Cell temp in cells)  temp.JoinBit = true;
         }
 
-        public static Chromasome[] CrossOver(Chromasome a, Chromasome b)
+        public static Chromosome[] CrossOver(Chromosome a, Chromosome b)
         {
-            Chromasome target = a, notTarget = b;
-            Chromasome[] ret = new Chromasome[2];
-            ret[0] = new Chromasome();
-            ret[1] = new Chromasome();
+            Chromosome target = a, notTarget = b;
+            Chromosome[] ret = new Chromosome[2];
+            ret[0] = new Chromosome();
+            ret[1] = new Chromosome();
             a.updateCellNum(); b.updateCellNum();
-            int least = Math.Min(a.numCells, b.numCells);
-            CrossChromaSpecificBits(a, b, ref target, ref notTarget, ret);
+            int least = Math.Min(a.NumCells, b.NumCells);
+            CrossChromoSpecificBits(a, b, ref target, ref notTarget, ret);
             target = ret[0];
             notTarget = ret[1];
-            ret[0].cell = null;
-            ret[1].cell = null;
+            ret[0].cells = null;
+            ret[1].cells = null;
             //Chromasome crossover done, now for cells
             List<int> aCrossed = new List<int>(), bCrossed = new List<int>();
 
@@ -411,10 +434,10 @@ namespace MyCellNet
             //Now, all the common cells have been crossed over. 
             //update target to point to the chromosome with the most cells, which will be supplying the rest of the info
             List<int> mostCrossed;
-            Chromasome mostCells;
-            if (least == a.numCells)
+            Chromosome mostCells;
+            if (least == a.NumCells)
             {
-                //if (aCrossed.Count == a.numCells)
+                //if (aCrossed.Count == a.NumCells)
 
                 mostCrossed = bCrossed;
                 mostCells = b;
@@ -424,7 +447,7 @@ namespace MyCellNet
                 mostCrossed = aCrossed;
                 mostCells = a;
             }
-            while (mostCells.numCells != mostCrossed.Count)//distribute remaining cells uniformly
+            while (mostCells.NumCells != mostCrossed.Count)//distribute remaining cells uniformly
             {
                 int i = GetUnpickedInt(mostCells, mostCrossed);
                 if (OptoGlobals.RNG.NextDouble() < OptoGlobals.CrossoverChance) Util.switchTargets(ret[0], ret[1], ref target, ref notTarget);
@@ -432,7 +455,9 @@ namespace MyCellNet
                 mostCrossed.Add(i);
             }
             ret[0].JoinAllCells();
+            ret[0].ErrorCheck();
             ret[1].JoinAllCells();
+            ret[1].ErrorCheck();
             return ret;
 
         }
@@ -447,13 +472,11 @@ namespace MyCellNet
                 string ret = "";
 
                 ret += classBits.BitsToString();
-                Cell temp = cell;
                 int count = 1;
-                while (temp != null)
+                foreach (Cell temp in cells)
                 {
                     ret += "Cell " + count++ + ": ";
                     ret += temp.BitsAsString();
-                    temp = temp.NextCell;
                 }
                 ret += " ";
                 ret += affinityBits.BitsToString();
@@ -464,8 +487,8 @@ namespace MyCellNet
 
         public void updateCellNum()
         {
-            cell.updateCellNum();
-            numCells = cell.NumCells;
+            //cell.updateCellNum();
+           // NumCells = cell.NumCells;
         }
 
         internal void resetAffinityBits()
@@ -476,29 +499,28 @@ namespace MyCellNet
 
         internal void JoinCell(Cell other)
         {
-            if (cell == null)
+            if (cells == null)
             {
                 initWithCell(other);
-                numCells = 1;
             }
             else
             {
-                cell.joinCell(other);
-                ++numCells;
+                cells[cells.Count - 1].JoinBit = true;
+                AddCell(other);
             }
         }
-            private static int GetUnpickedInt(Chromasome a, List<int> aCrossed)
+            private static int GetUnpickedInt(Chromosome a, List<int> aCrossed)
         {
-            if (a.numCells == aCrossed.Count) return -1;
-            int i = OptoGlobals.RNG.Next(0, a.numCells);
-            while (aCrossed.Contains(i)) i = OptoGlobals.RNG.Next(0, a.numCells);
+            if (a.NumCells == aCrossed.Count) return -1;
+            int i = OptoGlobals.RNG.Next(0, a.NumCells);
+            while (aCrossed.Contains(i)) i = OptoGlobals.RNG.Next(0, a.NumCells);
             return i;
         }
     
     #region Human Readable Chromosome
 
             public static String[] affinityStrings = new String[4], classStrings = new String[16];
-            static Chromasome()
+            static Chromosome()
             {
                 affinityStrings[0] = "has no preference";
                 affinityStrings[1] = "prefers the rear";
@@ -510,7 +532,12 @@ namespace MyCellNet
 
             }
 
-            public String HumanReadableChromosome()
+        public Chromosome(List<Cell> cells)
+        {
+            this.cells = cells;
+        }
+
+        public String HumanReadableChromosome()
             {
                 StringBuilder ret = new StringBuilder();
                 int affinity = affinityBits.BitsToString().BinaryStringToInt();
@@ -518,16 +545,14 @@ namespace MyCellNet
                 ret.AppendLine("\tIt focuses on problems in the following class:");
                 int Classes = classBits.BitsToString().BinaryStringToInt();
                 ret.AppendLine("\t"+classStrings[Classes]);
-                ret.AppendLine("\tBy aggregating the "+ (notFlag?"nay":"yes")+" votes from the following " + numCells+  " cell"+(numCells > 1?"s:":":"));
-                Cell temp = cell;
-                while (temp != null)
-                {
+                ret.AppendLine("\tBy aggregating the "+ (notFlag?"nay":"yes")+" votes from the following " + NumCells+  " cell"+(NumCells > 1?"s:":":"));
+                foreach(Cell temp in cells) { 
                     ret.AppendLine("\t"+temp.HumanReadableCell());
-                    temp = temp.NextCell;
                 }
                 return ret.ToString();
 
             }
-    #endregion
+
+        #endregion
     }
 }
