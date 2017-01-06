@@ -11,10 +11,12 @@ namespace EvoOptimization
 {
     public class OptoGlobals
     {
-        public enum CrossoverModes { Uniform, SinglePointChromasome, TwoPointChromasome, SinglePointHunter, TwoPointHunter, RandomHunter, RandomChromasome };
+        public enum CrossoverModes { Uniform, SinglePointHunter, TwoPointHunter, RandomHunter, TwoPointChromosome, SinglePointChromosome, RandomChromosome };
         private static int _seed = (int)DateTime.Now.Ticks;
         public static int GetSeed { get { return _seed; } }
+        public const int Means = 0, StdDevs = 1, Mins = 2, Maxes = 3, StatSize = 4;
         static String trXPath, trYPath, teXPath, teYPath, classNamesPath, datasetName;
+        public static String DataSetName { get { return datasetName; } }
         static HashSet<int> xIgnore, yIgnore, xCols, yCols;
         static bool xBlacklist, yBlacklist;
         internal static void ConfigureForDataset(string globalPath)
@@ -84,9 +86,82 @@ namespace EvoOptimization
 
             NumberOfClasses = ClassList.Count;
 
+            TrainingXNormed = NormalizeArray(TrainingXRaw, MinMaxNorm, true);
+            TestingXNormed = NormalizeArray(TestingXRaw, MinMaxNorm, false);
+
             //ClassDict is a translator to convert string classes to integers.  ClassList is a list to do the same thing with integers.
             //ClassList[ClassDict["className"]] is will yield "className", if it is in the dictionary.
             //Datasets are loaded... what's next?  
+        }
+
+        delegate List<Double> NormFunction(List<Double> x, List<List<Double>> stats);
+
+        public static List<Double> MinMaxNorm(List<Double> x, List<List<Double>> stats)
+        {
+            List<Double> ret = new List<double>(x.Count);
+            for (int i = 0; i < x.Count; ++i)
+            {
+                ret.Add((x[i] - stats[i][Mins]) / (stats[i][Maxes] - stats[i][Mins]));
+            }
+            return ret;
+        }
+
+        public static List<Double> StdDevNorm(List<Double> x, List<List<Double>> stats)
+        {
+            List<Double> ret = new List<double>(x.Count);
+            for (int i = 0; i < x.Count; ++i)
+            {
+                ret.Add((x[i] - stats[i][Means]) / stats[i][StdDevs]);
+            }
+            return ret;
+            }
+
+        
+        private static List<List<double>> NormalizeArray(List<List<double>> inArray, NormFunction func, bool trainingSet = true)
+        {
+            if (func == null) func = MinMaxNorm;
+            List<List<Double>> ret = new List<List<double>>(inArray.Count);
+            if (trainingSet || Stats == null)///get the stats from the array, and use it for all resulting data (eg, get stats from training set and then apply it to testing set)
+            {
+                Stats = new List<List<double>>();
+                for (int i = 0; i < inArray[0].Count; ++i)
+                {
+                    double[] column = Util.Flatten2dArray(pullColumnFromArray(inArray, i));
+                    Stats.Add(GetStats(column));
+                }
+
+            }
+            else
+            {
+                //Testing set- get min and max from testing set
+                for (int i = 0; i < inArray[0].Count; ++i)
+                {
+                    double[] column = Util.Flatten2dArray(pullColumnFromArray(inArray, i));
+                    List<Double> temp = GetStats(column);
+                    Stats[i][Mins] = Math.Min(temp[Mins], Stats[i][Mins]);
+                    Stats[i][Maxes] = Math.Max(temp[Maxes], Stats[i][Maxes]);
+                }
+            }
+            
+            foreach(List<Double> l in inArray)
+            {
+                ret.Add(func(l, Stats));
+            }
+
+            return ret;
+        }
+
+        public static List<double> GetStats(double[] col)
+        {
+            
+            List<Double> ret = new List<double>(StatSize);
+            for (int i = 0; i < StatSize; ++i) ret.Add(0);
+            ret[Mins] = col.Min();
+            ret[Maxes] = col.Max();
+            ret[Means] = col.AverageIgnoringNAN();
+            ret[StdDevs] = col.StandardDeviationIgnoringNAN();
+            return ret;
+            
         }
 
         private static int[,] intArrayFromStringList(List<List<String>> inList, int col = 0)
@@ -235,14 +310,14 @@ namespace EvoOptimization
         public static Random RNG;
         public static int NumberOfFeatures;
         public static double CrossoverChance = .25, ElitismPercent = .20,
-            InitialRateOfOnes = .5, MutationChance = .01;
+            InitialRateOfOnes = .5, MutationChance = .01, MergerPercent = .05;
 
         private const int dataDemarcation = 6;
         public static bool UseMWArrayInterface = false;
 
         public static Dictionary<String, int> ClassDict;
         public static List<String> ClassList, DataHeaders, yHeaders, AllPredictorNames;
-        public static List<List<Double>> TrainingXRaw, TestingXRaw;
+        public static List<List<Double>> TrainingXRaw, TestingXRaw, TrainingXNormed, TestingXNormed, Stats;
         public static List<List<String>> TrainingYRaw, TestingYRaw;
         public static bool[,] TrainingYRawLogical, TestingYRawLogical;
         public static double[,] TrX, TeX;
@@ -253,6 +328,7 @@ namespace EvoOptimization
 
         static OptoGlobals()
         {
+            ComplexityCap = 2000;
 #if DEBUG
             IsDebugMode = true;
 #endif
@@ -307,27 +383,7 @@ namespace EvoOptimization
 
 
 
-        private static double[,] remapToIntensity(string[,] tempIntensity)
-        {
-            int rows = tempIntensity.GetUpperBound(1) + 1;
 
-            double[,] ret = new double[rows, 1];
-            for (int i = 0; i < rows; ++i)
-            {
-                Double temp;
-                if (Double.TryParse(tempIntensity[0, i], out temp))
-                {
-                    temp = (temp + 1) * .2;//Maps 4s to 1, and 2s to .5.  Less than .5 should be noise... may adjust depending on actual numbers generated by alg.
-                    ret[i, 0] = temp;
-                }
-                else
-                {
-                   Debugger.Break();
-                }
-
-            }
-            return ret;
-        }
 
         private static T[,] pullColumnFromArray<T>(List<List<T>> array, int column)
         {

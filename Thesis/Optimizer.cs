@@ -5,7 +5,7 @@ using System.IO;
 using MyUtils;
 namespace EvoOptimization
 {
-    public abstract class Optimizer : IComparable<Optimizer>
+    public abstract class Optimizer : IComparable<Optimizer>, IHazFitness
     {
         protected static int firstFeature = 0;// OptoGlobals.NumberOfFeatures;
         public string GetToken { get { return _optimizerToken; } }

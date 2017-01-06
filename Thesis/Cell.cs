@@ -6,9 +6,9 @@ using System.Diagnostics;
 using EvoOptimization;
 
 namespace MyCellNet
-{ 
+{
     /// <summary>
-    /// The Cell is a building block for chromasomes.  At the simplest level, the cell consists of a function, upper and lower limits.
+    /// The Cell is a building block for Chromosomes.  At the simplest level, the cell consists of a function, upper and lower limits.
     /// As complexity increases (more cells get joined together) it also maintains join bits, and affinity bits.
     ///     
     /// The function bit corresponds to a hard-coded function the cell will call on the data.
@@ -38,7 +38,7 @@ namespace MyCellNet
 
 
         //Bits resolve as follows: NotFlag, Function, Lower Limit, Upper Limit
-        static private int _notFlagStart, _functionStart, _lLimitStart, _uLimitStart, _functionLength, _notFlagLength=1, limitLength=8, _joinBitStart, powerOffset = limitLength;
+        static private int _notFlagStart, _functionStart, _lLimitStart, _uLimitStart, _functionLength, _notFlagLength = 1, limitLength = 8, _joinBitStart, powerOffset = limitLength;
         static public int CellLength, NumberOfFunctions;
 
         /// <summary>
@@ -77,20 +77,20 @@ namespace MyCellNet
         //Member fields
         double lLimit = -10, uLimit = -10;
         int numCells = 1;
-        
+
         BitArray _bits = new BitArray(CellLength);
-        
+
 
         public delegate double DataDelegate(object data);
-        
+
         public static DataDelegate[] functions;
 
 
-        
+
         private static void initDelegatesAndNames()
         {
             functions = new DataDelegate[OptoGlobals.NumberOfFeatures];
-            for(int i = 0; i < OptoGlobals.NumberOfFeatures; ++i)
+            for (int i = 0; i < OptoGlobals.NumberOfFeatures; ++i)
             {
                 functions[i] = DelegateBuilder.SimpleLookup(i);
             }
@@ -117,7 +117,7 @@ namespace MyCellNet
                 return GetFunctionString().BinaryStringToInt().ToString();
             }
         }
-        
+
 
         public static DataDelegate GetFunction(int index)
         {
@@ -136,7 +136,7 @@ namespace MyCellNet
             {
                 functions[index] += dd;
             }
-        }        
+        }
         /// <summary>
         /// Sets the function at index to use dd.  Note that this uses -=.
         /// </summary>
@@ -147,7 +147,7 @@ namespace MyCellNet
             if (index >= NumberOfFunctions || index < 0) throw new IndexOutOfRangeException();
             else
             {
-                if(functions[index] != null && dd!= null) functions[index] -= dd;
+                if (functions[index] != null && dd != null) functions[index] -= dd;
             }
         }
         //Member Properties
@@ -158,7 +158,7 @@ namespace MyCellNet
             {
                 return _bits[0];
             }
-            
+
         }
         public double UpperLimit
         {
@@ -209,7 +209,7 @@ namespace MyCellNet
         {
             for (int i = 0; i < _bits.Length; i++)
             {
-                _bits[i] =  (OptoGlobals.RNG.Next() % 2 == 1 ? true : false);
+                _bits[i] = (OptoGlobals.RNG.Next() % 2 == 1 ? true : false);
             }
             JoinBit = true;
             ErrorCheck();
@@ -261,12 +261,12 @@ namespace MyCellNet
                 _bits[rand] = !_bits[rand];//randomly invert some bit, 
                 if (_bits[rand] == true)
                     swapLowerToUpper();//If bits[rand] is true, then it was 0, and the lower limit just got larger.
-                
+
                 //This block is reached one time in every 2^(2limitLength) cells, or for a limit length of 7, once every 16,384 cells.
-            evalLimits();
+                evalLimits();
             }
 
-            if(bitsInRange(_functionStart, _functionStart + _functionLength).BinaryStringToInt() > NumberOfFunctions)
+            if (bitsInRange(_functionStart, _functionStart + _functionLength).BinaryStringToInt() > NumberOfFunctions)
             {
                 rerollBits(_functionStart, _functionStart + _functionLength);
                 ErrorCheck();
@@ -307,14 +307,14 @@ namespace MyCellNet
         {
             return bitsInRange(_functionStart, _functionStart + _functionLength);
         }
-   
+
         private string getLowerLimitString()
         {
             return bitsInRange(_lLimitStart, _uLimitStart);
         }
         private string getUpperLimitString()
         {
-            return bitsInRange(_uLimitStart, _notFlagStart);
+            return bitsInRange(_uLimitStart, _joinBitStart);
         }
 
 
@@ -322,24 +322,21 @@ namespace MyCellNet
         //Evaluation related functions
 
 
-        public bool Vote(object data, out double ret, DateTime cutoff)
+        public bool Vote(object data, out double ret)
         {
 
-                bool vote = doFunction(GetFunctionString().BinaryStringToInt(), data,out ret, cutoff);
-                if (NotFlag) vote = !vote;//not the vote, if the not flag is in effect
+            bool vote = doFunction(GetFunctionString().BinaryStringToInt(), data, out ret);
+            if (NotFlag) vote = !vote;//not the vote, if the not flag is in effect
 
             return vote;
-            
+
         }
 
-
-
-        private bool doFunction(int value, object data, out double ret, DateTime cutoff)//This runs the detector function coded for.
+        private bool doFunction(int value, object data, out double ret)//This runs the detector function coded for.
         {
             bool vote;
             ret = functions[value](data);
-            if (ret > LowerLimit && ret < UpperLimit) vote = true;
-            else vote = false;
+            vote = (ret > LowerLimit && ret < UpperLimit);
             
             return vote;
         }

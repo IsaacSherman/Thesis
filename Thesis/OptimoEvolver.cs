@@ -330,7 +330,7 @@ namespace EvoOptimization
 
         protected virtual void ThreadEvalAllOptimizers()
         {
-            List<Thread> threadPool = new List<System.Threading.Thread>(_popSize);
+            List<Thread> threadPool = new List<Thread>(_popSize);
             foreach (Optimizer O in _population)
             {//Add any strings that need evaluations 
                 String OString = O.ToString();
@@ -351,8 +351,6 @@ namespace EvoOptimization
             {
                 t.Start();
             }
-
-
             
             while (threadPool.Any<Thread>(t => t.IsAlive)) Thread.Sleep(500);
             finishUpEvaluations();

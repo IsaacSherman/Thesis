@@ -9,7 +9,7 @@ namespace MyCellNet
 {
 
     /// <summary>
-    /// Chromasome contains one or more cells.  Each chromasome contains the affinity bits, and is the level at which merging effects, 
+    /// Chromosome contains one or more cells.  Each Chromosome contains the affinity bits, and is the level at which merging effects, 
     /// but merging is implemented at the Hunter level.
     /// Maintains class and affinity bits.
     /// Ultimately, the class bits determine what the cell is looking for.  This may not be utilized early on. For now, it's one bit:
@@ -17,7 +17,7 @@ namespace MyCellNet
     ///     1 means to vote Yes if the function returns false
     /// Affinity bits (2 of them) refer to horizontal or vertical affinity.  They guide Merger.
     ///     These bits get ORed together in the breeding process to determine whether the resulting offspring is horizontal or vertical.
-    ///     Vertical cells move into separate chromasomes, horizontal cells combine using AND or AND NOT. 
+    ///     Vertical cells move into separate Chromosomes, horizontal cells combine using AND or AND NOT. 
     /// </summary>
     public class Chromosome
     {
@@ -142,7 +142,7 @@ namespace MyCellNet
             foreach(Cell temp in cells){
                 ret.Append(temp.Serialize() + " ");
             }
-            ret.Append("endChromasome|"+Environment.NewLine);
+            ret.Append("endChromosome|"+Environment.NewLine);
 
 
             return ret.ToString();
@@ -213,32 +213,34 @@ namespace MyCellNet
             initCell();
             initArrays();
             updateCellNum();
-            ErrorCheck();
         }
 
-        private void ErrorCheck()
+        internal void ErrorCheck()
         {
-            if (classBits.BitsToString().BinaryStringToInt() > OptoGlobals.NumberOfClasses) classBits = classBits.RerollBitArray(OptoGlobals.RNG);
-            ErrorCheck();
+            if (classBits.BitsToString().BinaryStringToInt() > OptoGlobals.NumberOfClasses)
+            {
+                classBits = classBits.RerollBitArray(OptoGlobals.RNG);
+                ErrorCheck();
+            }
         }
 
         /// <summary>
         /// Parse the instructions in the component cells and return a bool representing the vote
         /// </summary>
         /// <returns>Boolean representing the vote of the chromosome</returns>
-        public int Vote(object data, out double ret, DateTime cutoff)
+        public int Vote(object data, out double ret)
         {
             double lowest = ret = double.PositiveInfinity;
             bool vote = true;
            
-            int returnVal = classBits.BitsToString().BinaryStringToInt();
-foreach(Cell current in cells)            {
-                vote = vote && current.Vote(data, out ret, cutoff);
+            int classVote = classBits.BitsToString().BinaryStringToInt();
+            foreach (Cell current in cells)            {
+                vote = vote && current.Vote(data, out ret);
                 ret = Math.Min(ret, lowest);
                 if (vote == false || current.JoinBit) break;
             }
             if (NotFlag == true) vote = !vote;
-            if (vote) return returnVal;
+            if (vote) return classVote;
             else return -1;
 
         }
@@ -248,7 +250,7 @@ foreach(Cell current in cells)            {
 
         /// <summary>
         /// Implements the following table for affinities:
-        /// Affinity table- Affinity A, B, result (new affinity, chromasome, conj. chromasome)
+        /// Affinity table- Affinity A, B, result (new affinity, Chromosome, conj. Chromosome)
         ///        00 00 00 A and[not] B
         ///        00 01 01 A and[not] B
         ///        00 10 10 B and[not] A
@@ -395,7 +397,7 @@ foreach(Cell current in cells)            {
             notTarget = ret[1];
             ret[0].cells = null;
             ret[1].cells = null;
-            //Chromasome crossover done, now for cells
+            //Chromosome crossover done, now for cells
             List<int> aCrossed = new List<int>(), bCrossed = new List<int>();
 
             int stop1, stop2;
@@ -413,13 +415,13 @@ foreach(Cell current in cells)            {
                         bCrossed.Add(i);
                     }
                     break;
-                //Uniform, SinglePointChromasome, TwoPointChromasome
-                case OptoGlobals.CrossoverModes.SinglePointChromasome:
-                case OptoGlobals.CrossoverModes.TwoPointChromasome:
+                //Uniform, SinglePointChromosome, TwoPointChromosome
+                case OptoGlobals.CrossoverModes.SinglePointChromosome:
+                case OptoGlobals.CrossoverModes.TwoPointChromosome:
                     for (int i = 0; i < least; ++i)
                     {
                         if (i == stop1 ||
-                            (OptoGlobals.CrossoverMode == OptoGlobals.CrossoverModes.TwoPointChromasome && i == stop2)) Util.switchTargets(ret[0], ret[1], ref target, ref notTarget);
+                            (OptoGlobals.CrossoverMode == OptoGlobals.CrossoverModes.TwoPointChromosome && i == stop2)) Util.switchTargets(ret[0], ret[1], ref target, ref notTarget);
                         target.JoinCell(a[i]);
                         notTarget.JoinCell(b[i]);
                         aCrossed.Add(i);

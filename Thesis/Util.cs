@@ -524,6 +524,10 @@ namespace MyUtils
             }
             return ret;
         }
+        public static StringBuilder DeleteLastChar(this StringBuilder x)
+        {
+            x.Remove(x.Length - 1, 1);
+        }
     }
 }
 
