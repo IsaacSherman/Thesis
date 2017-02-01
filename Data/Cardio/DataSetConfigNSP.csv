@@ -1,0 +1,16 @@
+#Dataset Name
+CardioData
+#Class Names File
+../../../Data/Cardio/classNamesNSP.txt
+#TrainingSet X Path
+../../../Data/Cardio/trainingXY.csv
+#TrainingSet Y Path
+../../../Data/Cardio/trainingXY.csv
+#TestingSet  X Path
+../../../Data/Cardio/testingXY.csv
+#TestingSet  Y Path
+../../../Data/Cardio/testingXY.csv
+#X ignore list, comma separated and starting with w if it's a whitelist (otherwise, blacklist)
+b, 29, 30
+#Y ignore list, as above
+w, 30

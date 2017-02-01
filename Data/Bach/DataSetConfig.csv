@@ -1,0 +1,16 @@
+#Dataset Name
+BachChorales
+#Class Names File
+../../../Data/Bach/classNames.txt
+#TrainingSet X Path
+../../../Data/Bach/trainingSetXY.csv
+#TrainingSet Y Path
+../../../Data/Bach/trainingSetXY.csv
+#TestingSet  X Path
+../../../Data/Bach/testingSetXY.csv
+#TestingSet  Y Path
+../../../Data/Bach/testingSetXY.csv
+#X ignore list, comma separated and starting with w if it's a whitelist (otherwise, blacklist)
+b, 0, 16
+#Y ignore list, as above
+w, 16
