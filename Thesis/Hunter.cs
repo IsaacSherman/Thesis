@@ -82,6 +82,8 @@ namespace MyCellNet
         public Hunter EliteCopy()
         {
             Hunter ret = new Hunter().StripChromosomes();//initializes everything, empties chromosome
+            ret.Fitness = Fitness;
+            ret.ConfusionMatrix = ConfusionMatrix;
             foreach (Chromosome x in myChromosomes)
             {
                 ret.myChromosomes.Add(x.deepCopy());
@@ -100,17 +102,21 @@ namespace MyCellNet
             ConfusionMatrix = new int[OptoGlobals.NumberOfClasses, OptoGlobals.NumberOfClasses];
             int n = 0;
             int[] countPerClass = new int[OptoGlobals.NumberOfClasses], predictionPerClass = new int[OptoGlobals.NumberOfClasses];
-
+            ErrorCheck();
             for (int i = 0; i < setx.Count; ++i)
             {
                 double[] data = setx[i];
 
                 int x = Vote(data);
-                int y = setY[i];
-                ConfusionMatrix[x, y] += 1;
-                countPerClass[y] += 1;
-                predictionPerClass[x] += 1;
+                if (x >= 0)//a -1 means it didn't vote
+                {
+                    int y = setY[i];
+                    ConfusionMatrix[x, y] += 1;
+                    countPerClass[y] += 1;
+                    predictionPerClass[x] += 1;
+                }
                 ++n;
+                
             }
 
             double totalRight = 0;
@@ -118,7 +124,7 @@ namespace MyCellNet
             for (int i = 0; i < OptoGlobals.NumberOfClasses; ++i)
             {
                 totalRight += ConfusionMatrix[i, i];
-                rightPerClass[i] = ConfusionMatrix[i, i] / (1+countPerClass[i]);
+                rightPerClass[i] = ConfusionMatrix[i, i] / (1.0+countPerClass[i]);
 
             }
             Fitness = rightPerClass.Average();
@@ -126,7 +132,7 @@ namespace MyCellNet
 
         public void AddChromosome(Chromosome x)
         {
-            x.updateCellNum();
+            
             myChromosomes.Add(x.deepCopy());
 
         }
@@ -158,11 +164,9 @@ namespace MyCellNet
             {
             temp = Chromosome.Merge(first.myChromosomes[i], second.myChromosomes[i]);
 
-                if (ret.Complexity > OptoGlobals.ComplexityCap) break;
                 foreach (Chromosome x in temp)
                 {
                     ret.AddChromosome(x);
-                    if (ret.Complexity > OptoGlobals.ComplexityCap) return ret;
                 }
 
             }
@@ -186,10 +190,15 @@ namespace MyCellNet
             ret = 0;
             //So we need an array of ints which hold the counts for each class
             int[] results = new int[OptoGlobals.NumberOfClasses];
-            foreach (Chromosome x in myChromosomes) {
+            foreach (Chromosome x in myChromosomes)
+            {
                 int temp = x.Vote(data, out ret);
+
+                if (temp >= OptoGlobals.NumberOfClasses)
+                    throw new AccessViolationException("wtf");
                 if (temp >= 0) results[temp] += x.NumCells;
-                }
+
+            }
             int maxVotes = results.Max();
             if (maxVotes == 0) return -1;
             else

@@ -89,17 +89,17 @@ namespace MyUtils
                     flatDim = 0;
                 }
                 len = array.GetUpperBound(mainDim);
-                ret = new T[len];
+                ret = new T[len+1];
                 if (dim1Upper == 1)
                 { //Column Vector
-                    for (int i = 0; i < len; ++i)
+                    for (int i = 0; i < len+1; ++i)
                     {
                         ret[i] = array[i, 0];
                     }
                 }
                 else//row vector
                 {
-                    for (int i = 0; i < len; ++i)
+                    for (int i = 0; i < len+1; ++i)
                     {
                         ret[i] = array[0, i];
                     }
@@ -526,7 +526,8 @@ namespace MyUtils
         }
         public static StringBuilder DeleteLastChar(this StringBuilder x)
         {
-            x.Remove(x.Length - 1, 1);
+            return x.Remove(x.Length - 1, 1);
+           
         }
     }
 }

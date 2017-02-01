@@ -217,7 +217,7 @@ namespace MyCellNet
 
         internal void ErrorCheck()
         {
-            if (classBits.BitsToString().BinaryStringToInt() > OptoGlobals.NumberOfClasses)
+            if (classBits.BitsToString().BinaryStringToInt() >= OptoGlobals.NumberOfClasses)
             {
                 classBits = classBits.RerollBitArray(OptoGlobals.RNG);
                 ErrorCheck();
@@ -294,8 +294,7 @@ namespace MyCellNet
                 ret[0] = new Chromosome(b.cells);
                 ret[0] = JoinCells(ret[0], a);
                 ret[0].affinityBits = AffinityBitsFromAffinity(bAffinity);
-                ret[0].classBits = b.classBits;
-                ret[0].updateCellNum();
+                ret[0].classBits = new BitArray(b.classBits);
             }
             else
             {
@@ -303,8 +302,7 @@ namespace MyCellNet
                 ret[0] = new Chromosome(a.cells);
                 ret[0]= JoinCells(ret[0], b);
                 ret[0].affinityBits = AffinityBitsFromAffinity(aAffinity);
-                ret[0].classBits = a.classBits;
-                ret[0].updateCellNum();
+                ret[0].classBits = new BitArray(a.classBits);
                 //A and [not] B
             }
 
@@ -317,7 +315,7 @@ namespace MyCellNet
             Chromosome ret = new Chromosome(chromosome.cells);
             foreach (Cell a in append.cells)
             {
-                ret.cells.Add(a);
+                ret.cells.Add(a.DeepCopy());
             }
             return ret;
         }
@@ -325,13 +323,13 @@ namespace MyCellNet
         public Chromosome deepCopy()
         {
             Chromosome ret = new Chromosome();
+            ret.cells = new List<Cell>();
             ret.classBits = new BitArray(classBits);
             ret.affinityBits = new BitArray(affinityBits);
             foreach(Cell x in cells)
             {
-                ret.AddCell(x);
+                ret.AddCell(x.DeepCopy());
             }
-            ret.updateCellNum();
             ret.notFlag = NotFlag;
             return ret;
         }
@@ -536,7 +534,8 @@ namespace MyCellNet
 
         public Chromosome(List<Cell> cells)
         {
-            this.cells = cells;
+            foreach (Cell x in cells)
+                AddCell(x.DeepCopy());
         }
 
         public String HumanReadableChromosome()

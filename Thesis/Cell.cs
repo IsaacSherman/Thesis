@@ -48,7 +48,7 @@ namespace MyCellNet
         static Cell()
         {
             reinforceConstantRelations();
-            initDelegatesAndNames();
+
 
         }
 
@@ -56,14 +56,13 @@ namespace MyCellNet
         {
             _notFlagStart = 0;
             _functionStart = _notFlagStart + _notFlagLength;
-            NumberOfFunctions = OptoGlobals.ClassDict.Keys.Count;
             _functionLength = (int)Math.Ceiling(Math.Log(NumberOfFunctions, 2)); //So our cells will have enough bits to carry the necessary number of functions
             _lLimitStart = _functionStart + _functionLength;
             _uLimitStart = _lLimitStart + limitLength;
             _joinBitStart = _uLimitStart + limitLength;
             CellLength = _joinBitStart + _notFlagLength;
             functions = new DataDelegate[NumberOfFunctions];
-
+            initDelegatesAndNames();
         }
 
         protected void rerollBits(int start, int end)
@@ -243,8 +242,8 @@ namespace MyCellNet
         private void evalLimits()
         {
 
-            uLimit = getUpperLimitString().BinaryStringToDouble(powerOffset - limitLength);
-            lLimit = getLowerLimitString().BinaryStringToDouble(powerOffset - limitLength);
+            uLimit = getUpperLimitString().BinaryStringToDouble(-1*powerOffset);
+            lLimit = getLowerLimitString().BinaryStringToDouble(-1*powerOffset);
 
         }
         public void ErrorCheck()
@@ -394,8 +393,8 @@ namespace MyCellNet
         public Cell DeepCopy()
         {
             ErrorCheck();//Don't want to copy errors inadvertently
-            Cell ret = new Cell(this);
-            Cell temp = this, retTemp = ret;
+            Cell ret = new Cell();
+            ret._bits = new BitArray(_bits);
             return ret;
         }
         /// <summary>

@@ -43,16 +43,16 @@ namespace MyCellNet
 
         internal void ConfigureCellDelegatesForDatabase()
         {
-            Cell.SetNumberOfFeatures();
             Chromosome.SetNumberOfClasses();
+            Cell.SetNumberOfFeatures();
 
             ///Cells expect double[] to their delegates, in this iteration (it's easily subclassed and changed)
             ///the next few lines populate static variables that hold the data in the format expected.
             ///Purely done for simplicity.
             trainingSet = setFromCollection(OptoGlobals.TrainingXNormed);
             validationSet = setFromCollection(OptoGlobals.TestingXNormed);
-            trainingY = new List<int>(MyUtils.Util.Flatten2dArray(OptoGlobals.trainingYIntArray));
-            validationY = new List<int>(MyUtils.Util.Flatten2dArray(OptoGlobals.testingYIntArray));
+            trainingY = new List<int>(Util.Flatten2dArray(OptoGlobals.trainingYIntArray));
+            validationY = new List<int>(Util.Flatten2dArray(OptoGlobals.testingYIntArray));
            
         }
 
@@ -80,15 +80,22 @@ namespace MyCellNet
             dumpData();
         }
 
+        Hunter lastBest;
+
         private void advanceGeneration()
         {
+            
             evaluatePopulation();
             adjustFitnessForComplexity();
             population.Sort();
             population.Reverse();
             gatherStats();
+            if (generation > 1 && population[0].Fitness < _sBestFitness[generation - 1])
+            {
+                Console.WriteLine("We lost fitness, shouldn't be possible");
+            }
             generateNextGeneration();
-
+            lastBest = population[0].EliteCopy();
         }
 
         List<Double> _sAverageComplexity, _sBestFitness, _sAverageFitness,  _sWorstFitness, _sMaxComplexity, _sComplexityOfBestHunter, _sMinComplexity,
@@ -219,8 +226,8 @@ namespace MyCellNet
             }
         }
 
-        static private List<Double[]> trainingSet, validationSet;
-        static private List<int> trainingY, validationY;
+        static internal List<Double[]> trainingSet, validationSet;
+        static internal List<int> trainingY, validationY;
 
 
         private void evaluatePopulation()
@@ -229,11 +236,6 @@ namespace MyCellNet
 
             foreach (Hunter x in population)
             {
-                //object[] parms = new object[2];
-                //parms[0] = x;
-                //parms[1] = trainingSet;
-                //object faceless = parms;
-                //threadPool.Add(new Thread(new ParameterizedThreadStart(evaluateHunterOnSet)));
                 threadPool.Add(new Thread(() => x.EvaluateSet(trainingSet, trainingY)));
             }
             foreach (Thread t in threadPool)
