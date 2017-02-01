@@ -81,14 +81,17 @@ namespace MyCellNet
 
         public Hunter EliteCopy()
         {
+            string previousString = HumanReadableHunter;
             Hunter ret = new Hunter().StripChromosomes();//initializes everything, empties chromosome
-            ret.Fitness = Fitness;
-            ret.ConfusionMatrix = ConfusionMatrix;
             foreach (Chromosome x in myChromosomes)
             {
                 ret.myChromosomes.Add(x.deepCopy());
             }
-            return ret;
+            if(ConfusionMatrix != null) ret.ConfusionMatrix = (int[,]) ConfusionMatrix.Clone();
+            ret.Fitness = Fitness;
+            string newString = ret.HumanReadableHunter;
+            Debug.Assert(newString == previousString);
+                return ret;
 
         }
 
@@ -102,37 +105,36 @@ namespace MyCellNet
             ConfusionMatrix = new int[OptoGlobals.NumberOfClasses, OptoGlobals.NumberOfClasses];
             int n = 0;
             int[] countPerClass = new int[OptoGlobals.NumberOfClasses], predictionPerClass = new int[OptoGlobals.NumberOfClasses];
-            ErrorCheck();
+
             for (int i = 0; i < setx.Count; ++i)
             {
                 double[] data = setx[i];
 
                 int x = Vote(data);
-                if (x >= 0)//a -1 means it didn't vote
-                {
-                    int y = setY[i];
-                    ConfusionMatrix[x, y] += 1;
-                    countPerClass[y] += 1;
-                    predictionPerClass[x] += 1;
-                }
+                int y = setY[i];
+                countPerClass[y] += 1;
                 ++n;
-                
+                if (x == -1) continue; 
+                ConfusionMatrix[x, y] += 1;
+                predictionPerClass[x] += 1;
             }
 
             double totalRight = 0;
             double[] rightPerClass = new double[OptoGlobals.NumberOfClasses];
+            int zerosPerClass = 0;
             for (int i = 0; i < OptoGlobals.NumberOfClasses; ++i)
             {
                 totalRight += ConfusionMatrix[i, i];
-                rightPerClass[i] = ConfusionMatrix[i, i] / (1.0+countPerClass[i]);
-
+                rightPerClass[i] = (double)ConfusionMatrix[i, i] / (1+countPerClass[i]);
+                zerosPerClass += (predictionPerClass[i] == 0 ? 1 : 0);
             }
-            Fitness = rightPerClass.Average();
+            Fitness = rightPerClass.Average()-.05 * zerosPerClass;
+            if (Fitness < 0) Fitness = 0;
         }
 
         public void AddChromosome(Chromosome x)
         {
-            
+            x.updateCellNum();
             myChromosomes.Add(x.deepCopy());
 
         }
@@ -164,9 +166,11 @@ namespace MyCellNet
             {
             temp = Chromosome.Merge(first.myChromosomes[i], second.myChromosomes[i]);
 
+                if (ret.Complexity > OptoGlobals.ComplexityCap) break;
                 foreach (Chromosome x in temp)
                 {
                     ret.AddChromosome(x);
+                    if (ret.Complexity > OptoGlobals.ComplexityCap) return ret;
                 }
 
             }
@@ -187,18 +191,14 @@ namespace MyCellNet
         /// <returns>Whether the Hunter attacks or not.</returns>
         public int Vote(object data, out double ret)
         {
+            ErrorCheck();
             ret = 0;
             //So we need an array of ints which hold the counts for each class
             int[] results = new int[OptoGlobals.NumberOfClasses];
-            foreach (Chromosome x in myChromosomes)
-            {
+            foreach (Chromosome x in myChromosomes) {
                 int temp = x.Vote(data, out ret);
-
-                if (temp >= OptoGlobals.NumberOfClasses)
-                    throw new AccessViolationException("wtf");
                 if (temp >= 0) results[temp] += x.NumCells;
-
-            }
+                }
             int maxVotes = results.Max();
             if (maxVotes == 0) return -1;
             else
@@ -241,6 +241,7 @@ namespace MyCellNet
         public static Hunter[] Crossover(Hunter a, Hunter b)
         {
             Hunter[] ret = new Hunter[2];
+            string bDebugStr = b.HumanReadableHunter, aDebugStr = a.HumanReadableHunter;
 
             ret[0] = new Hunter().StripChromosomes();
             ret[1] = new Hunter().StripChromosomes();
@@ -260,7 +261,7 @@ namespace MyCellNet
                     {
                         //Trying a form of uniform crossover, 2 point
                         //just swapping chromosomes, not crossing over at that level
-                        temp = Chromosome.CrossOver(a[i], b[i]);
+                        temp = Chromosome.CrossOver(a[i].deepCopy(), b[i].deepCopy());
                         target.AddChromosome(a[i]);
                         notTarget.AddChromosome(b[i]);
                         aCrossed.Add(i);
@@ -367,6 +368,12 @@ namespace MyCellNet
                 target.AddChromosome(mostChromosomes[i]);
                 mostCrossed.Add(i);
             }
+
+            string aOutStr = a.HumanReadableHunter, bOutStr = b.HumanReadableHunter;
+
+            Debug.Assert(aOutStr == aDebugStr && bOutStr == bDebugStr);
+            
+
             ret[0].updateCellNum();
             ret[1].updateCellNum();
             return ret;
@@ -510,6 +517,19 @@ namespace MyCellNet
                 _fitness = value;
             }
         }
+
+        public static void AdjustFitnessForComplexity(Hunter x)
+        {
+            double localCompCap = OptoGlobals.ComplexityCap;
+            x.Fitness *= (localCompCap - x.Complexity) / localCompCap;
+            if (x.Fitness < 0)
+                x.Fitness = 0;
+
+            if (x.Fitness > 1) System.Diagnostics.Debugger.Break();
+        }
+
     }
+
+
 
 }

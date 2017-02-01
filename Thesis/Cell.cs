@@ -38,7 +38,7 @@ namespace MyCellNet
 
 
         //Bits resolve as follows: NotFlag, Function, Lower Limit, Upper Limit
-        static private int _notFlagStart, _functionStart, _lLimitStart, _uLimitStart, _functionLength, _notFlagLength = 1, limitLength = 8, _joinBitStart, powerOffset = limitLength;
+        static private int _notFlagStart, _functionStart, _lLimitStart, _uLimitStart, _functionLength, _notFlagLength = 1, limitLength = 8, _joinBitStart, powerOffset = 0;
         static public int CellLength, NumberOfFunctions;
 
         /// <summary>
@@ -49,13 +49,13 @@ namespace MyCellNet
         {
             reinforceConstantRelations();
 
-
         }
 
         private static void reinforceConstantRelations()
         {
             _notFlagStart = 0;
             _functionStart = _notFlagStart + _notFlagLength;
+            NumberOfFunctions = OptoGlobals.NumberOfFeatures;
             _functionLength = (int)Math.Ceiling(Math.Log(NumberOfFunctions, 2)); //So our cells will have enough bits to carry the necessary number of functions
             _lLimitStart = _functionStart + _functionLength;
             _uLimitStart = _lLimitStart + limitLength;
@@ -194,6 +194,7 @@ namespace MyCellNet
         /// <param name="temp">Cell to copy</param>
         public Cell(Cell temp)
         {
+            string previousString = temp.HumanReadableCell();
             if (temp != null)
             {
                 _bits = new BitArray(temp._bits);
@@ -201,6 +202,8 @@ namespace MyCellNet
             }
             evalLimits();
             ErrorCheck();
+            string newString = HumanReadableCell();
+            Debug.Assert(newString == previousString);
 
         }
 
@@ -242,8 +245,8 @@ namespace MyCellNet
         private void evalLimits()
         {
 
-            uLimit = getUpperLimitString().BinaryStringToDouble(-1*powerOffset);
-            lLimit = getLowerLimitString().BinaryStringToDouble(-1*powerOffset);
+            uLimit = getUpperLimitString().BinaryStringToDouble(powerOffset - limitLength);
+            lLimit = getLowerLimitString().BinaryStringToDouble(powerOffset - limitLength);
 
         }
         public void ErrorCheck()
@@ -392,9 +395,7 @@ namespace MyCellNet
         /// <returns>A new Cell which is a deep copy of this</returns>
         public Cell DeepCopy()
         {
-            ErrorCheck();//Don't want to copy errors inadvertently
-            Cell ret = new Cell();
-            ret._bits = new BitArray(_bits);
+            Cell ret = new Cell(this);
             return ret;
         }
         /// <summary>

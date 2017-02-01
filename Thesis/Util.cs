@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -88,18 +89,18 @@ namespace MyUtils
                     mainDim = 1;
                     flatDim = 0;
                 }
-                len = array.GetUpperBound(mainDim);
-                ret = new T[len+1];
+                len = array.GetUpperBound(mainDim)+1;
+                ret = new T[len];
                 if (dim1Upper == 1)
                 { //Column Vector
-                    for (int i = 0; i < len+1; ++i)
+                    for (int i = 0; i < len; ++i)
                     {
                         ret[i] = array[i, 0];
                     }
                 }
                 else//row vector
                 {
-                    for (int i = 0; i < len+1; ++i)
+                    for (int i = 0; i < len; ++i)
                     {
                         ret[i] = array[0, i];
                     }
@@ -526,8 +527,8 @@ namespace MyUtils
         }
         public static StringBuilder DeleteLastChar(this StringBuilder x)
         {
-            return x.Remove(x.Length - 1, 1);
-           
+            x.Remove(x.Length - 1, 1);
+            return x;
         }
     }
 }

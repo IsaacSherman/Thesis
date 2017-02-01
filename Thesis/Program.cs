@@ -1,4 +1,5 @@
 ﻿using System;
+
 using MyCellNet;
 using System.Collections.Generic;
 
@@ -15,7 +16,7 @@ namespace EvoOptimization
 
             // Create the MATLAB instance 
             String GlobalPath = "../../../Data/Yeast/DataSetConfig.csv";
-            int maxGen = 1000, saveAfterGens = 25, popSize = 50, baseCompUB = 12, maxComp = 1000;
+            int maxGen = 100, saveAfterGens = 25, popSize = 50, baseCompUB = 10, maxComp = 100;
 
             if (args.Length >= 2) { GlobalPath = args[1]; }
             for (int i = 2; i < args.Length; ++i)
@@ -49,28 +50,13 @@ namespace EvoOptimization
                 }
             }
 
-
-            
-
             OptoGlobals.ConfigureForDataset(GlobalPath);
-            Daedalus D = new Daedalus();
-            D.MaxGen = maxGen;
-            D.RecordInterval = saveAfterGens;
-            D.PopSize = popSize;
-            D.InitialComplexityUpperBound = baseCompUB;
-            D.MaxCellComplexity = maxComp;
-            D.ConfigureCellDelegatesForDatabase();
-
-
-            Hunter test = new Hunter(8), testCopy,thirdCopy;
-            testCopy = test.EliteCopy();
-            test.EvaluateSet(Daedalus.trainingSet, Daedalus.trainingY);
-            testCopy.EvaluateSet(Daedalus.trainingSet, Daedalus.trainingY);
-            thirdCopy = test.EliteCopy();
-            test.EvaluateSet(Daedalus.trainingSet, Daedalus.trainingY);
-
-            D.Run();
-
+            double[] poot =  { OptoGlobals.RNG.NextDouble(), OptoGlobals.RNG.NextDouble(), OptoGlobals.RNG.NextDouble(), OptoGlobals.RNG.NextDouble(), OptoGlobals.RNG.NextDouble(),
+            OptoGlobals.RNG.NextDouble(),OptoGlobals.RNG.NextDouble(),OptoGlobals.RNG.NextDouble(),OptoGlobals.RNG.NextDouble(),OptoGlobals.RNG.NextDouble()};
+            object pootwrap = poot;
+            Hunter x = new Hunter();
+            double nerp;
+            //x.Vote(pootwrap, out nerp);
 
             MulticlassNBOptimizer.MulticlassNBOptimizer.RewriteBits();
             EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer> porgam = new EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer>();
@@ -79,8 +65,15 @@ namespace EvoOptimization
             porgam.PopSize = popSize;
 
             //Configure the program here- set things like multi-threading, etc, if desired
+            Daedalus D = new Daedalus();
+            D.MaxGen = maxGen*10;
+            D.RecordInterval = saveAfterGens;
+            D.PopSize = popSize*10;
+            D.InitialComplexityUpperBound = baseCompUB;
+            D.MaxCellComplexity = maxComp;
+            D.ConfigureCellDelegatesForDatabase();
+            D.Run();
             porgam.ConfigureAndRun();
-
 
         }
 
