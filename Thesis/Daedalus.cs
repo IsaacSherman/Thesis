@@ -6,6 +6,8 @@ using System.Linq;
 using MyUtils;
 using System.IO;
 using System.Text;
+using System.Collections;
+using System.Diagnostics;
 
 namespace MyCellNet
 {
@@ -69,11 +71,24 @@ namespace MyCellNet
             population = new List<Hunter>(PopSize);
             for (int i = 0; i < PopSize; ++i)
             {
-                population.Add(new Hunter(OptoGlobals.RNG.Next(1, InitialComplexityUpperBound + 1)));
+                Hunter temp = new Hunter().StripChromosomes();
+                int size = (int)Math.Ceiling(Math.Log(OptoGlobals.NumberOfClasses, 2));
+                for (int j = 0; j < OptoGlobals.NumberOfClasses; ++j)
+                {
+                    BitArray classBits = Util.BitsFromInt(size, j);
+                    temp.AddChromosome(new Chromosome(new System.Collections.BitArray(2, true), classBits));
+                    int targetSize = OptoGlobals.RNG.Next(1, InitialComplexityUpperBound + 1);
+                    while (temp.NumChromosomes < targetSize){
+                        temp.AddChromosome(new Chromosome());
+                    }
+                }
+                population.Add(temp);
+
             }
             for (generation = 0; generation < MaxGen; ++generation)
             {
                 advanceGeneration();
+                Console.WriteLine("Starting Generation " + generation);
                 if (generation % RecordInterval == 0) dumpData();
 
             }
@@ -82,8 +97,10 @@ namespace MyCellNet
 
         private void advanceGeneration()
         {
+
+
             evaluatePopulation();
-            adjustFitnessForComplexity();
+            
             population.Sort();
             population.Reverse();
             gatherStats();
@@ -94,6 +111,8 @@ namespace MyCellNet
         List<Double> _sAverageComplexity, _sBestFitness, _sAverageFitness,  _sWorstFitness, _sMaxComplexity, _sComplexityOfBestHunter, _sMinComplexity,
             _sFitnessStdDev, _sComplexityStdDev;
 
+        string _previousBestString = "";
+        Double _previousBestFitness = 0;
         private void gatherStats()
         {
             if(_sAverageFitness == null)
@@ -109,7 +128,7 @@ namespace MyCellNet
                 _sComplexityStdDev= new List<double>(MaxGen);
 
             }
-
+            _previousBestFitness = (_sBestFitness.Count < 1 ? 0 : _sBestFitness[_sBestFitness.Count - 1]);
             _sBestFitness.Add(population[0].Fitness);
             _sComplexityOfBestHunter.Add(population[0].Complexity);
             List<double> workingFitness = new List<double>(PopSize), workingComplexity = new List<double>(PopSize);
@@ -118,6 +137,12 @@ namespace MyCellNet
                 workingComplexity.Add(x.Complexity);
                 workingFitness.Add(x.Fitness);
             }
+            if (_previousBestFitness > population[0].Fitness)
+            {
+                string _currentBestString = population[0].HumanReadableHunter;
+                System.Diagnostics.Debugger.Break();
+            }
+            _previousBestString = population[0].HumanReadableHunter;
 
             _sMinComplexity.Add(workingComplexity.Min());
             _sMaxComplexity.Add(workingComplexity.Max());
@@ -164,6 +189,7 @@ namespace MyCellNet
             using (StreamWriter fout = new StreamWriter(new FileStream(directory + hunterFileName, FileMode.Create)))
             {
                 Hunter best = population[0];
+                fout.WriteLine("Best Fitness = " + best.Fitness);
                 //fout.WriteLine(best.Serialize());//Dump the hunter data (should implement better way)
                 fout.WriteLine(best.HumanReadableHunter);//Dump the human readable portion
                 int[,] cm = best.ConfusionMatrix;
@@ -210,14 +236,6 @@ namespace MyCellNet
             return ret;
         }
 
-        private void adjustFitnessForComplexity()
-        {
-            foreach(Hunter x in population)
-            {
-                x.Fitness *= (OptoGlobals.ComplexityCap - x.Complexity )/ OptoGlobals.ComplexityCap;
-                if (x.Fitness < 0) x.Fitness = 0;
-            }
-        }
 
         static private List<Double[]> trainingSet, validationSet;
         static private List<int> trainingY, validationY;
@@ -229,27 +247,31 @@ namespace MyCellNet
 
             foreach (Hunter x in population)
             {
-                //object[] parms = new object[2];
-                //parms[0] = x;
-                //parms[1] = trainingSet;
-                //object faceless = parms;
-                //threadPool.Add(new Thread(new ParameterizedThreadStart(evaluateHunterOnSet)));
+                x.ErrorCheck();
                 threadPool.Add(new Thread(() => x.EvaluateSet(trainingSet, trainingY)));
             }
             foreach (Thread t in threadPool)
             {
                 t.Start();
             }
-            
             while (threadPool.Any(t => t.IsAlive)) Thread.Sleep(500);
+
+
+            foreach (Hunter x in population)
+            {
+                Hunter.AdjustFitnessForComplexity(x);
+            }
+
 
         }
 
+
         private void generateNextGeneration()
         {
-
+            Console.WriteLine("Before generation: best fitness is " + population[0].Fitness);
             List<Hunter> nextGen = new List<Hunter>(PopSize), breedingPop = new List<Hunter>(PopSize / 2);
             breedingPop = SupportingFunctions.StochasticUniformSample(population);
+            Console.WriteLine("Filling breeding pool");
             fillListFromBreedingPop(nextGen, breedingPop);
             mutatePopulation(nextGen, (int)Math.Ceiling(OptoGlobals.ElitismPercent * PopSize));
             population = nextGen;
@@ -272,12 +294,20 @@ namespace MyCellNet
         private void fillListFromBreedingPop(List<Hunter> nextGen, List<Hunter> BreedingPop)
         {
             int elitismNum = (int)Math.Ceiling(OptoGlobals.ElitismPercent * PopSize );
+            Console.WriteLine("Elitism...");
             for(int e = 0; e < elitismNum; ++e)
             {
-                nextGen.Add (population[e]);
+                Console.WriteLine("Elitism: Adding hunter with fitness " + population[e].Fitness);
+                if (population[e].Fitness == 0) 
+                    nextGen.Add(new Hunter(population[e].NumChromosomes, 2)); 
+                nextGen.Add (population[e].EliteCopy());
             }
+            Console.WriteLine("Merge...");
+
             List<int> mergeList = new List<int>(15), used;
             int i=-1;
+            Console.WriteLine("Before merge: best fitness is " + nextGen[0].Fitness);
+
             while (++i < BreedingPop.Count)
                 if (OptoGlobals.RNG.NextDouble() < OptoGlobals.MergerPercent) mergeList.Add(i);
 
@@ -288,17 +318,18 @@ namespace MyCellNet
                 used.Add(target);
                 int k = SupportingFunctions.GetUnpickedInt(BreedingPop.Count, used);
                 used.Add(k);
-
+                //Console.WriteLine("Merging Hunters " + k + " and " + target);
                 nextGen.Add(Hunter.Merger(BreedingPop[target], BreedingPop[k]));
             }
             //Now, we will use Crossover for the remaining slots
             while (nextGen.Count < PopSize)
             {
+
                 int j = OptoGlobals.RNG.Next(0, elitismNum), k = OptoGlobals.RNG.Next(0, BreedingPop.Count);
                 while (k == j) k = OptoGlobals.RNG.Next(0, BreedingPop.Count);
                 foreach (Hunter newGuy in Hunter.Crossover(nextGen[j], BreedingPop[k]))
                 {
-                    nextGen.Add(newGuy);
+                    nextGen.Add(newGuy.EliteCopy());
                 }
 
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using MyUtils;
 using EvoOptimization;
+using System.Diagnostics;
 
 namespace MyCellNet
 {
@@ -98,7 +99,7 @@ namespace MyCellNet
             return cells[p];
         }
 
-        public Chromosome(BitArray aff, BitArray cla)
+        public Chromosome(BitArray aff, BitArray cla) :this()
         {
             
             affinityBits = new BitArray(aff);
@@ -217,7 +218,8 @@ namespace MyCellNet
 
         internal void ErrorCheck()
         {
-            if (classBits.BitsToString().BinaryStringToInt() > OptoGlobals.NumberOfClasses)
+            foreach (Cell l in cells) l.ErrorCheck();
+            if (classBits.BitsToString().BinaryStringToInt() >= OptoGlobals.NumberOfClasses)
             {
                 classBits = classBits.RerollBitArray(OptoGlobals.RNG);
                 ErrorCheck();
@@ -324,15 +326,19 @@ namespace MyCellNet
 
         public Chromosome deepCopy()
         {
+            string previousString = HumanReadableChromosome();
             Chromosome ret = new Chromosome();
+            ret.cells = new List<Cell>();
             ret.classBits = new BitArray(classBits);
             ret.affinityBits = new BitArray(affinityBits);
             foreach(Cell x in cells)
             {
-                ret.AddCell(x);
+                ret.AddCell(x.DeepCopy());
             }
             ret.updateCellNum();
             ret.notFlag = NotFlag;
+            string newString = ret.HumanReadableChromosome();
+            Debug.Assert(newString == previousString);
             return ret;
         }
 
@@ -386,17 +392,24 @@ namespace MyCellNet
 
         public static Chromosome[] CrossOver(Chromosome a, Chromosome b)
         {
+            string aDebugStr = a.HumanReadableChromosome(), bDebugStr = b.HumanReadableChromosome();
             Chromosome target = a, notTarget = b;
             Chromosome[] ret = new Chromosome[2];
             ret[0] = new Chromosome();
             ret[1] = new Chromosome();
             a.updateCellNum(); b.updateCellNum();
+
+
+            string aOutString = a.HumanReadableChromosome(), boutString = b.HumanReadableChromosome();
+            Debug.Assert(aOutString == aDebugStr);
+            Debug.Assert(boutString == bDebugStr);
+            
             int least = Math.Min(a.NumCells, b.NumCells);
             CrossChromoSpecificBits(a, b, ref target, ref notTarget, ret);
             target = ret[0];
             notTarget = ret[1];
-            ret[0].cells = null;
-            ret[1].cells = null;
+            ret[0].cells = new List<Cell>();
+            ret[1].cells = new List<Cell>();
             //Chromosome crossover done, now for cells
             List<int> aCrossed = new List<int>(), bCrossed = new List<int>();
 
@@ -460,6 +473,11 @@ namespace MyCellNet
             ret[0].ErrorCheck();
             ret[1].JoinAllCells();
             ret[1].ErrorCheck();
+
+            aOutString = a.HumanReadableChromosome();
+            boutString = b.HumanReadableChromosome();
+            Debug.Assert(aOutString == aDebugStr);
+            Debug.Assert(boutString == bDebugStr);
             return ret;
 
         }
@@ -501,7 +519,7 @@ namespace MyCellNet
 
         internal void JoinCell(Cell other)
         {
-            if (cells == null)
+            if (cells == null || cells.Count == 0)
             {
                 initWithCell(other);
             }
@@ -534,9 +552,9 @@ namespace MyCellNet
 
             }
 
-        public Chromosome(List<Cell> cells)
+        public Chromosome(List<Cell> cells):this()
         {
-            this.cells = cells;
+            cells = new List<Cell>(cells);
         }
 
         public String HumanReadableChromosome()
@@ -546,7 +564,7 @@ namespace MyCellNet
                 ret.AppendLine("\tThis chromosome " + affinityStrings[affinity]);
                 ret.AppendLine("\tIt focuses on problems in the following class:");
                 int Classes = classBits.BitsToString().BinaryStringToInt();
-                ret.AppendLine("\t"+classStrings[Classes]);
+                ret.AppendLine("\t"+OptoGlobals.ClassList[Classes]);
                 ret.AppendLine("\tBy aggregating the "+ (notFlag?"nay":"yes")+" votes from the following " + NumCells+  " cell"+(NumCells > 1?"s:":":"));
                 foreach(Cell temp in cells) { 
                     ret.AppendLine("\t"+temp.HumanReadableCell());

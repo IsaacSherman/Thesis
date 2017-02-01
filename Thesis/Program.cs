@@ -56,7 +56,7 @@ namespace EvoOptimization
             object pootwrap = poot;
             Hunter x = new Hunter();
             double nerp;
-            x.Vote(pootwrap, out nerp);
+            //x.Vote(pootwrap, out nerp);
 
             MulticlassNBOptimizer.MulticlassNBOptimizer.RewriteBits();
             EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer> porgam = new EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer>();
@@ -65,15 +65,15 @@ namespace EvoOptimization
             porgam.PopSize = popSize;
 
             //Configure the program here- set things like multi-threading, etc, if desired
-            porgam.ConfigureAndRun();
             Daedalus D = new Daedalus();
-            D.MaxGen = maxGen;
+            D.MaxGen = maxGen*10;
             D.RecordInterval = saveAfterGens;
-            D.PopSize = popSize;
+            D.PopSize = popSize*10;
             D.InitialComplexityUpperBound = baseCompUB;
             D.MaxCellComplexity = maxComp;
             D.ConfigureCellDelegatesForDatabase();
             D.Run();
+            porgam.ConfigureAndRun();
 
         }
 

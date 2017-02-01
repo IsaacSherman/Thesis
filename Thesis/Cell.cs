@@ -38,7 +38,7 @@ namespace MyCellNet
 
 
         //Bits resolve as follows: NotFlag, Function, Lower Limit, Upper Limit
-        static private int _notFlagStart, _functionStart, _lLimitStart, _uLimitStart, _functionLength, _notFlagLength = 1, limitLength = 8, _joinBitStart, powerOffset = limitLength;
+        static private int _notFlagStart, _functionStart, _lLimitStart, _uLimitStart, _functionLength, _notFlagLength = 1, limitLength = 8, _joinBitStart, powerOffset = 0;
         static public int CellLength, NumberOfFunctions;
 
         /// <summary>
@@ -48,7 +48,6 @@ namespace MyCellNet
         static Cell()
         {
             reinforceConstantRelations();
-            initDelegatesAndNames();
 
         }
 
@@ -56,14 +55,14 @@ namespace MyCellNet
         {
             _notFlagStart = 0;
             _functionStart = _notFlagStart + _notFlagLength;
-            NumberOfFunctions = OptoGlobals.ClassDict.Keys.Count;
+            NumberOfFunctions = OptoGlobals.NumberOfFeatures;
             _functionLength = (int)Math.Ceiling(Math.Log(NumberOfFunctions, 2)); //So our cells will have enough bits to carry the necessary number of functions
             _lLimitStart = _functionStart + _functionLength;
             _uLimitStart = _lLimitStart + limitLength;
             _joinBitStart = _uLimitStart + limitLength;
             CellLength = _joinBitStart + _notFlagLength;
             functions = new DataDelegate[NumberOfFunctions];
-
+            initDelegatesAndNames();
         }
 
         protected void rerollBits(int start, int end)
@@ -195,6 +194,7 @@ namespace MyCellNet
         /// <param name="temp">Cell to copy</param>
         public Cell(Cell temp)
         {
+            string previousString = temp.HumanReadableCell();
             if (temp != null)
             {
                 _bits = new BitArray(temp._bits);
@@ -202,6 +202,8 @@ namespace MyCellNet
             }
             evalLimits();
             ErrorCheck();
+            string newString = HumanReadableCell();
+            Debug.Assert(newString == previousString);
 
         }
 
@@ -393,9 +395,7 @@ namespace MyCellNet
         /// <returns>A new Cell which is a deep copy of this</returns>
         public Cell DeepCopy()
         {
-            ErrorCheck();//Don't want to copy errors inadvertently
             Cell ret = new Cell(this);
-            Cell temp = this, retTemp = ret;
             return ret;
         }
         /// <summary>
