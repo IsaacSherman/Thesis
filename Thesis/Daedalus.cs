@@ -139,10 +139,10 @@ namespace MyCellNet
             }
             if (_previousBestFitness > population[0].Fitness)
             {
-                string _currentBestString = population[0].HumanReadableHunter;
+                string _currentBestString = population[0].Serialize();
                 System.Diagnostics.Debugger.Break();
             }
-            _previousBestString = population[0].HumanReadableHunter;
+            _previousBestString = population[0].Serialize();
 
             _sMinComplexity.Add(workingComplexity.Min());
             _sMaxComplexity.Add(workingComplexity.Max());
@@ -189,8 +189,9 @@ namespace MyCellNet
             using (StreamWriter fout = new StreamWriter(new FileStream(directory + hunterFileName, FileMode.Create)))
             {
                 Hunter best = population[0];
+                fout.WriteLine(best.Serialize());
+                fout.WriteLine();
                 fout.WriteLine("Best Fitness = " + best.Fitness);
-                //fout.WriteLine(best.Serialize());//Dump the hunter data (should implement better way)
                 fout.WriteLine(best.HumanReadableHunter);//Dump the human readable portion
                 int[,] cm = best.ConfusionMatrix;
                 StringBuilder x = new StringBuilder();
@@ -271,7 +272,16 @@ namespace MyCellNet
             Console.WriteLine("Before generation: best fitness is " + population[0].Fitness);
             List<Hunter> nextGen = new List<Hunter>(PopSize), breedingPop = new List<Hunter>(PopSize / 2);
             breedingPop = SupportingFunctions.StochasticUniformSample(population);
-            Console.WriteLine("Filling breeding pool");
+
+            for (int i = 0; i < breedingPop.Count; ++i)
+            {
+                if (breedingPop[i].Fitness == 0)
+                {
+                    breedingPop[i] = new Hunter(breedingPop[i].NumChromosomes, 1);
+                }
+            }
+
+                Console.WriteLine("Filling breeding pool");
             fillListFromBreedingPop(nextGen, breedingPop);
             mutatePopulation(nextGen, (int)Math.Ceiling(OptoGlobals.ElitismPercent * PopSize));
             population = nextGen;

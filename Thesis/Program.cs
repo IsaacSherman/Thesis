@@ -2,6 +2,7 @@
 
 using MyCellNet;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace EvoOptimization
 {
@@ -64,6 +65,7 @@ namespace EvoOptimization
             porgam.SaveAfterGens = saveAfterGens;
             porgam.PopSize = popSize;
 
+      
             //Configure the program here- set things like multi-threading, etc, if desired
             Daedalus D = new Daedalus();
             D.MaxGen = maxGen*10;
@@ -72,8 +74,31 @@ namespace EvoOptimization
             D.InitialComplexityUpperBound = baseCompUB;
             D.MaxCellComplexity = maxComp;
             D.ConfigureCellDelegatesForDatabase();
+
+
+            SerializationChecks();
+
             D.Run();
             porgam.ConfigureAndRun();
+
+        }
+
+        private static void SerializationChecks()
+        {
+            Cell testCell = new Cell();
+            string c = testCell.Serialize();
+            Cell reco = new Cell(c);
+            string rc = reco.Serialize();
+            Console.WriteLine(testCell.BitsAsString());
+            Console.WriteLine(reco.BitsAsString());
+            Debug.Assert(testCell.HumanReadableCell() == reco.HumanReadableCell());
+
+            Hunter testHunter = new Hunter(3, 3);
+            String test = testHunter.Serialize();
+            Hunter reconstituted = new Hunter(test);
+            testHunter.ErrorCheck();
+            reconstituted.ErrorCheck();
+            Debug.Assert(testHunter.HumanReadableHunter == reconstituted.HumanReadableHunter);
 
         }
 

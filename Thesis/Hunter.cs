@@ -21,7 +21,8 @@ namespace MyCellNet
         List<Chromosome> myChromosomes;
         public int NumChromosomes { get { return myChromosomes.Count; } }
         public string tag="";
-        
+        public double ValidationFitness = 0;
+        public int[,] ValidationMatrix;
         private double accuracy = 0;
         public int[,] ConfusionMatrix { get; private set; }
         public double Complexity
@@ -38,9 +39,10 @@ namespace MyCellNet
         }
         public Hunter()
         {
+            ValidationMatrix = ConfusionMatrix = null;
             initChromosomes();
         }
-        public Hunter(int chromanum, int cells = 1)
+        public Hunter(int chromanum, int cells = 1):this()
         {
             myChromosomes = new List<Chromosome>(chromanum);
             for (int i = 0; i < chromanum; ++i)
@@ -54,12 +56,13 @@ namespace MyCellNet
             }
         }
 
+
         internal void ErrorCheck()
         {
             foreach (Chromosome c in myChromosomes) c.ErrorCheck();
         }
 
-        public void overWriteClassBits(ref int num)
+        public void overwriteClassBits(ref int num)
         {
             Debug.Assert(myChromosomes.Count != 0);
             for (int i = 0; i < myChromosomes.Count; ++i)
@@ -70,9 +73,9 @@ namespace MyCellNet
             }
         }
 
-        protected Hunter(Chromosome x)
+        protected Hunter(Chromosome x):this()
         {
-            initChromosomes();
+            myChromosomes = new List<Chromosome>();
             myChromosomes.RemoveAt(0);
             this.AddChromosome(x);
         }
@@ -88,7 +91,10 @@ namespace MyCellNet
                 ret.myChromosomes.Add(x.deepCopy());
             }
             if(ConfusionMatrix != null) ret.ConfusionMatrix = (int[,]) ConfusionMatrix.Clone();
+
+            if (ValidationMatrix != null) ret.ValidationMatrix = (int[,])ValidationMatrix.Clone();
             ret.Fitness = Fitness;
+            ret.ValidationFitness = ValidationFitness;
             string newString = ret.HumanReadableHunter;
             Debug.Assert(newString == previousString);
                 return ret;
@@ -100,8 +106,29 @@ namespace MyCellNet
         /// </summary>
         /// <param name="setx">the input vectors</param>
         /// <param name="setY">the class identity</param>
-        internal void EvaluateSet(List<double[]> setx, List<int> setY)
+        /// <param name="validation">Treat this evaluation as a validation</param>
+        internal void EvaluateSet(List<double[]> setx, List<int> setY, Boolean validation = false)
         {
+
+
+
+            if (validation)//set up swap variables, check for redundancy
+            {
+                if (ValidationMatrix == null)
+                {
+                    ValidationMatrix = ConfusionMatrix;
+                    ValidationFitness = Fitness;
+                }
+            }
+           /*     else return;//If validate is called when we've already validated, that's a waste of cycles.
+            }
+            else
+            {
+                if (ConfusionMatrix != null) return;
+            }
+            */
+           
+
             ConfusionMatrix = new int[OptoGlobals.NumberOfClasses, OptoGlobals.NumberOfClasses];
             int n = 0;
             int[] countPerClass = new int[OptoGlobals.NumberOfClasses], predictionPerClass = new int[OptoGlobals.NumberOfClasses];
@@ -130,6 +157,15 @@ namespace MyCellNet
             }
             Fitness = rightPerClass.Average()-.05 * zerosPerClass;
             if (Fitness < 0) Fitness = 0;
+            if (validation)
+            {
+                int[,] temp = ConfusionMatrix;
+                double tempFit = Fitness;
+                ConfusionMatrix = ValidationMatrix;
+                Fitness = ValidationFitness;
+                ValidationMatrix = temp;
+                ValidationFitness = tempFit;
+            }
         }
 
         public void AddChromosome(Chromosome x)
@@ -227,15 +263,29 @@ namespace MyCellNet
 
         public string Serialize()
         {
-            string ret = "Chromosomes:";
+            StringBuilder ret = new StringBuilder();
             foreach (Chromosome x in myChromosomes)
             {
-                ret += x.Serialize();
+                ret.Append(x.Serialize());
+                ret.Append("\n");
                 
             }
-            ret += String.Format("endHunter|{0}", Environment.NewLine);
-            return ret;
+            return ret.ToString();
         }
+
+
+        public Hunter(string serialString):this()
+        {
+            myChromosomes = new List<Chromosome>();
+            char[] splitter = { '\n' };
+            List<String> CStrings = new List<String>(serialString.Split(splitter, StringSplitOptions.RemoveEmptyEntries));
+            foreach (String x in CStrings)
+            {
+                myChromosomes.Add(new Chromosome(x));
+            }
+            ErrorCheck();
+        }
+
 
 
         public static Hunter[] Crossover(Hunter a, Hunter b)
@@ -471,12 +521,23 @@ namespace MyCellNet
 
         public int CompareTo(Hunter other)
         {
-            if (this.Fitness == other.Fitness)
-            {//Tiebreaker
-                return -1 * (this.Complexity.CompareTo(other.Complexity));
+            if (ValidationFitness == 0)
+            {
+                if (this.Fitness == other.Fitness)
+                {//Tiebreaker
+                    return -1 * (this.Complexity.CompareTo(other.Complexity));
+                }
+                else return (this.Fitness.CompareTo(other.Fitness));
             }
-            else return (this.Fitness.CompareTo(other.Fitness));
+            else
+            {
+                if (ValidationFitness == other.ValidationFitness)
+                {//Tiebreaker goes back to regular fitness, because we assume evaluate happens before validate
+                    return (Fitness.CompareTo(other.Fitness));
+                }
+                else return (ValidationFitness.CompareTo(other.ValidationFitness));
 
+            }
         }
 
         double GetFitness()

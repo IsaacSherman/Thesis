@@ -134,19 +134,38 @@ namespace MyCellNet
         }
         public string Serialize()
         {
-            StringBuilder ret = new StringBuilder("Aff:");
+            StringBuilder ret = new StringBuilder(":");
             for (int i = 0; i < affinityBits.Length; ++i) ret.Append(affinityBits[i] == true ? "1" : "0");
-            ret.Append( "Cl:");
+            ret.Append(":");
             for (int i = 0; i < classBits.Length; ++i) ret.Append(classBits[i] == true ? "1" : "0");
-            ret.Append("Not: " + (notFlag ? "1 " : "0 "));
-            ret.Append(string.Format("Cells:{0}", Environment.NewLine));
+            ret.Append(": " + (notFlag ? "1 " : "0 "));
+            ret.Append(":");
             foreach(Cell temp in cells){
-                ret.Append(temp.Serialize() + " ");
+                ret.Append(temp.Serialize() + ";");
             }
-            ret.Append("endChromosome|"+Environment.NewLine);
-
-
             return ret.ToString();
+        }
+
+        public Chromosome(string inStr):this()
+        {
+            cells = new List<Cell>();
+            char[] splitter = { ':' };
+            string[] stringSet = inStr.Split(splitter, StringSplitOptions.RemoveEmptyEntries);
+
+            affinityBits = new BitArray(stringSet[0].Length);
+            for(int i = 0; i < stringSet[0].Length; ++i) affinityBits[i] = stringSet[0][i] == '1';
+            classBits = new BitArray(stringSet[1].Length);
+            for (int i = 0; i < stringSet[1].Length; ++i ) classBits[i] = stringSet[1][i] == '1';
+
+            notFlag = stringSet[2].Trim() == "1";
+            splitter[0] = ';';
+            stringSet = stringSet[3].Split(splitter, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string x in stringSet)
+            {
+                cells.Add(new Cell(x));
+            }
+
+
         }
 
         public bool NotFlag
@@ -196,7 +215,7 @@ namespace MyCellNet
             affinityBits = affinityBits.RerollBitArray(OptoGlobals.RNG);
             classBits = classBits.RerollBitArray(OptoGlobals.RNG);
 
-            notFlag = OptoGlobals.RNG.Next() % 2 == 1 ? true : false;
+            notFlag = OptoGlobals.RNG.Next() % 2 == 1;
             ErrorCheck();
         }
         /// <summary>

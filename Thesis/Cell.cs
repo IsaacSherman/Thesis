@@ -104,11 +104,19 @@ namespace MyCellNet
 
         public string Serialize()
         {
-            StringBuilder ret = new StringBuilder("Cell:");
-            for (int i = 0; i < _bits.Length; ++i) ret.Append(_bits[i] == true ? "1" : "0");
-            ret.Append("|");
+            StringBuilder ret = new StringBuilder();
+            for (int i = 0; i < _bits.Length; ++i) ret.Append(_bits[i]? "1" : "0");
             return ret.ToString();
         }
+
+
+        public Cell(string x):this()
+        {
+            _bits = new BitArray(x.Length);
+            for (int i = 0; i < x.Length; ++i) _bits[i] = x[i] == '1';
+            evalLimits();
+        }
+
         public string FunctionIndex
         {
             get
