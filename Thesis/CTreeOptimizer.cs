@@ -17,7 +17,7 @@ namespace EvoOptimization.CTreeOptimizer
             maxNumSplitsStart, splitCriterionStart = minLeafSizeStart+minLeafSizeLength,
             totalCTreeLength = featureLength + mergeLeavesLength + maxNumSplitsLength + minLeafSizeLength + splitCriterionLength;
 
-        static void reapplyFeatureLengths()
+        public static void RewriteBitLengths()
         {
             firstFeature = 0; featureLength = OptoGlobals.NumberOfFeatures; mergeLeavesLength = 1; maxNumSplitsLength = 6;
             minLeafSizeLength=5; splitCriterionLength = 2; 
@@ -28,8 +28,8 @@ namespace EvoOptimization.CTreeOptimizer
             totalCTreeLength = featureLength + mergeLeavesLength + maxNumSplitsLength + minLeafSizeLength + splitCriterionLength;
         }
 
-        string splitCriterion, mergeLeaves;
-        int maxSplits, minLeafSize; 
+        private string splitCriterion, mergeLeaves;
+        private int maxSplits, minLeafSize; 
 
         protected override void interpretVals()
         {
@@ -86,6 +86,7 @@ namespace EvoOptimization.CTreeOptimizer
 
         protected override object[] getObjArgs()
         {
+            interpretVals();
             List<Object> ret = new List<object>();
             ret.Add("MergeLeaves");
             ret.Add(mergeLeaves);
@@ -101,7 +102,7 @@ namespace EvoOptimization.CTreeOptimizer
 
         protected override void errorCheck()
         {
-            //No errors
+            AssignSplitCriterion();//if there are any errors, they're in there
         }
 
 
@@ -110,50 +111,30 @@ namespace EvoOptimization.CTreeOptimizer
         {
             setFeatures();
             interpretVals();
+            double[] classAcc;
             double[,] label = null;
             if (OptoGlobals.UseMWArrayInterface)
             {
                 throw new NotImplementedException();
-                //TrainingSuite Evaluator = Optimizer.evaluator;
-                //MWArray[] args = getArgs();
-                //bool failed = false;
-                //MWArray[] argsOut = null;
-                //try
-                //{
-                //    argsOut = Evaluator.trainRUSBoost(3, myTrX, myTeX, OptoGlobals.mwTrYLog, OptoGlobals.mwTeYLog, _nLearners, myPredictorLabels, args);
-                //}
-                //catch (Exception e)
-                //{
-                //    failed = true;
-                //}
-                //finally
-                //{
-                //    if (!failed)
-                //    {
-                //        MWNumericArray demilabel = (MWNumericArray)argsOut[0];
-                //        label = (double[,])demilabel.ToArray();
-                //        GeneratedLabels = argsOut[2];
-                //        MatLabModel = argsOut[1];
-                //    }
-                //}
             }
             else
             {
-                object[] args = getObjArgs(), parsedObjOut;
-                object argsOutObj;
+                object[] args = getObjArgs(), parsedArgsOut;
+                object argsOut;
+                bool success = comEvalFunc(args, out argsOut);
+                parsedArgsOut = (object[])argsOut;
+                label = (double[,])parsedArgsOut[0];
+                if (success)
+                {
+                    GeneratedLabels = new List<int>(Util.Flatten2dArray((int[,])parsedArgsOut[2]));
+                    classAcc = Optimizer.ScoreMulticlassClassifier(label);
+                    classAccuracy = new List<double>(classAcc);
 
-
-                comEvalFunc(args, out argsOutObj);
-                parsedObjOut = (object[])argsOutObj;
-
-                label = (double[,])parsedObjOut[0];
-
-                GeneratedLabels = new MWLogicalArray((bool[,])parsedObjOut[2]);
+                }
 
             }               
             _confuMat = new ConfusionMatrix((int)label[1, 1], (int)label[0, 0], (int)label[0, 1], (int)label[1, 0]);
             setFitness();
-            CompareLabelsToIntensity();
             NullData();
 
 

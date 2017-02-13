@@ -58,6 +58,12 @@ namespace EvoOptimization
             Hunter x = new Hunter();
             double nerp;
             //x.Vote(pootwrap, out nerp);
+            CTreeOptimizer.CTreeOptimizer.RewriteBitLengths();
+            EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer> prog = new EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer>();
+            prog.MaxGen = maxGen;
+            prog.SaveAfterGens = saveAfterGens;
+            prog.PopSize = popSize;
+            prog.ConfigureAndRun();
 
             MulticlassNBOptimizer.MulticlassNBOptimizer.RewriteBits();
             EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer> porgam = new EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer>();
@@ -77,9 +83,9 @@ namespace EvoOptimization
 
 
             SerializationChecks();
+            porgam.ConfigureAndRun();
 
             D.Run();
-            porgam.ConfigureAndRun();
 
         }
 

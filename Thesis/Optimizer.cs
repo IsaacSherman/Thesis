@@ -380,7 +380,7 @@ protected static List<int> extractNumericLabels(String blockString)
                 {
                     _fitness = classAccuracy.ToArray().AverageIgnoringNAN();
                     foreach (double acc in classAccuracy)
-                        _mcc = (acc > _mcc ? acc : _mcc);
+                        _mcc = (acc > _mcc ? acc : _mcc);//Use mcc as max accuracy for tiebreaker
                 }
                 else
                 {

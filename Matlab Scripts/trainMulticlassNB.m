@@ -1,4 +1,5 @@
-function [ confusionMatrix, model, label ] = trainMulticlassNB( trX, teX, trY, teY, predictorNames, numlearners,otherArgs )
+function [ confusionMatrix, model, label ] = trainMulticlassNB( trX, teX,...
+    trY, teY, predictorNames, numlearners,otherArgs )
 %TRAINNB Summary of this function goes here
 %   Detailed explanation goes here
 

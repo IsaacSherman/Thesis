@@ -29,8 +29,7 @@ switch(length(otherArgs))
             otherArgs{4}, otherArgs{5}, otherArgs{6}, otherArgs{7}, otherArgs{8}, ...
             otherArgs{9}, otherArgs{10});
     otherwise
-        model = classifier(trX, trY, classifierType, numLearners, learners,...
-            'PredictorNames', predictorNames, key1, val1 );
+        model = classifier(trX, trY,'PredictorNames', predictorNames );
 end
 
 label = predict(model, teX);
