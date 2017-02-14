@@ -277,7 +277,7 @@ namespace MyCellNet
         public Hunter(string serialString):this()
         {
             myChromosomes = new List<Chromosome>();
-            char[] splitter = { '\n' };
+            string[] splitter = { "\r\n", "\n" };
             List<String> CStrings = new List<String>(serialString.Split(splitter, StringSplitOptions.RemoveEmptyEntries));
             foreach (String x in CStrings)
             {

@@ -59,31 +59,30 @@ namespace EvoOptimization
             double nerp;
             //x.Vote(pootwrap, out nerp);
             CTreeOptimizer.CTreeOptimizer.RewriteBitLengths();
-            EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer> prog = new EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer>();
-            prog.MaxGen = maxGen;
-            prog.SaveAfterGens = saveAfterGens;
-            prog.PopSize = popSize;
-            prog.ConfigureAndRun();
+            EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer> decisionTreeProgram = new EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer>();
+            decisionTreeProgram.MaxGen = maxGen;
+            decisionTreeProgram.SaveAfterGens = saveAfterGens;
+            decisionTreeProgram.PopSize = popSize;
+            //decisionTreeProgram.ConfigureAndRun();
 
             MulticlassNBOptimizer.MulticlassNBOptimizer.RewriteBits();
-            EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer> porgam = new EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer>();
-            porgam.MaxGen = maxGen;
-            porgam.SaveAfterGens = saveAfterGens;
-            porgam.PopSize = popSize;
+            EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer> naiveBayesProgram = new EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer>();
+            naiveBayesProgram.MaxGen = maxGen;
+            naiveBayesProgram.SaveAfterGens = saveAfterGens;
+            naiveBayesProgram.PopSize = popSize;
 
       
             //Configure the program here- set things like multi-threading, etc, if desired
             Daedalus D = new Daedalus();
-            D.MaxGen = maxGen*10;
+            D.MaxGen = maxGen * 10;
             D.RecordInterval = saveAfterGens;
-            D.PopSize = popSize*10;
+            D.PopSize = popSize * 10;
             D.InitialComplexityUpperBound = baseCompUB;
             D.MaxCellComplexity = maxComp;
             D.ConfigureCellDelegatesForDatabase();
 
-
             SerializationChecks();
-            porgam.ConfigureAndRun();
+            //naiveBayesProgram.ConfigureAndRun();
 
             D.Run();
 

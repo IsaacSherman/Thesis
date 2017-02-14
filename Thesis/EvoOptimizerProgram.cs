@@ -249,7 +249,7 @@ namespace EvoOptimization
                 sw.Reset();
             }
             D.DumpLookupToFile(OutputFileStem + "FinalTable.csv");
-            Console.ReadLine();
+            //Console.ReadLine();
         }
     }
 }

@@ -420,7 +420,9 @@ namespace EvoOptimization
         {
             if (Population[0].GetConfusionMatrix().totalReportedNegatives == Population[0].GetConfusionMatrix().totalReportedPositives) Population[0].Eval();
             SortedList<String, Tuple<Double, Double>> output = new SortedList<string, Tuple<Double, Double>>(_lookup);
-                    _population[0].Save("Best " + Optimizer.Token + " gen" + generation);
+            char[] nums = { '0', '5', '.'};
+            string saveToken = p.Substring(0, p.IndexOfAny(nums));
+                    _population[0].Save(saveToken+"Best" + generation);
 
                 using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create("LabelsFromBest" + p))))
                 {
@@ -443,8 +445,6 @@ namespace EvoOptimization
                     genLine.Append(",");
                     avgLine.Append(AverageFitnessTracker[i] + ",");
                     bestLine.Append(BestFitnessTracker[i] + ",");
-
-
                 }
                 fout2.WriteLine(genLine.ToString());
                 fout2.WriteLine(avgLine.ToString());

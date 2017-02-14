@@ -14,12 +14,41 @@ namespace EvoOptimization
 
             Directory.CreateDirectory(path, temp);
 
-            using (StreamWriter folut = new StreamWriter(path + ".csv"))
+            using (StreamWriter folut = new StreamWriter(path + "\\labels.csv"))
             {
+
                 DumpLabelsToStream(folut);
             }
+            double[,] label = extractConfusionMatrix();
 
-           
+            using (StreamWriter fout = new StreamWriter(path + "\\confusion.csv"))
+            {
+                fout.WriteLine(ToString());
+
+                for (int row = 0; row < OptoGlobals.NumberOfClasses; ++row)
+                {
+                    for (int col = 0; col < OptoGlobals.NumberOfClasses; ++col)
+                    {
+                        fout.Write(label[row, col] + ", ");
+                    }
+                    fout.WriteLine("");
+
+                }
+                fout.WriteLine("");
+            }   
+         
+        }
+
+        private double[,] extractConfusionMatrix()
+        {
+            double[,] ret = new double[OptoGlobals.NumberOfClasses, OptoGlobals.NumberOfClasses];
+            for (int i = 0; i < GeneratedLabels.Count; ++i )
+            {
+                int row = OptoGlobals.testingYIntArray[i,0];
+                int col = GeneratedLabels[i];
+                ret[row, col] += 1;
+            }
+            return ret;
         }
         public static Boolean Multiclass = false;
         protected void PrepForSave(string path)
@@ -96,6 +125,8 @@ namespace EvoOptimization
         protected static string _optimizerToken;
         virtual public void DumpLabelsToStream(StreamWriter fout)
         {
+            fout.WriteLine(ToString());
+
             if (Multiclass)
                 dumpStringLabelsToStream(fout, GeneratedLabels);
             else
@@ -172,6 +203,7 @@ namespace EvoOptimization
             {
                 SaveModelByLongEval(true, fullPath);
             }
+
 
         }
 

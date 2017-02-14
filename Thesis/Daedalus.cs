@@ -69,7 +69,8 @@ namespace MyCellNet
         internal void Run()
         {
             population = new List<Hunter>(PopSize);
-            for (int i = 0; i < PopSize; ++i)
+            bool successfulLoad = loadBestHunter();
+            for (int i = (successfulLoad? 1:0); i < PopSize; ++i)
             {
                 Hunter temp = new Hunter().StripChromosomes();
                 int size = (int)Math.Ceiling(Math.Log(OptoGlobals.NumberOfClasses, 2));
@@ -220,6 +221,26 @@ namespace MyCellNet
 
             }
 
+        }
+
+
+
+        private bool loadBestHunter()
+        {
+            string directory = "./" + OptoGlobals.DataSetName + "Daedalus/";
+            if (!Directory.Exists(directory)) return false;
+            using (StreamReader fin = new StreamReader(directory + "bestHunter.csv"))
+            {
+                StringBuilder serial = new StringBuilder();
+                string nextLine = fin.ReadLine();
+                while (nextLine != "")
+                {
+                    serial.AppendLine(nextLine);
+                    nextLine = fin.ReadLine();
+                }
+                population.Add(new Hunter(serial.ToString()));
+            }
+            return true;
         }
 
 
