@@ -228,7 +228,8 @@ namespace MyCellNet
         private bool loadBestHunter()
         {
             string directory = "./" + OptoGlobals.DataSetName + "Daedalus/";
-            if (!Directory.Exists(directory)) return false;
+            string bestHunter = directory + "bestHunter.csv";
+            if (!Directory.Exists(directory) || !File.Exists(bestHunter)) return false;
             using (StreamReader fin = new StreamReader(directory + "bestHunter.csv"))
             {
                 StringBuilder serial = new StringBuilder();
