@@ -155,7 +155,7 @@ namespace MyCellNet
                 rightPerClass[i] = (double)ConfusionMatrix[i, i] / (1+countPerClass[i]);
                 zerosPerClass += (predictionPerClass[i] == 0 ? 1 : 0);
             }
-            Fitness = rightPerClass.Average()-.05 * zerosPerClass;
+            Fitness = rightPerClass.Average()-(.5/OptoGlobals.NumberOfClasses) * zerosPerClass;
             if (Fitness < 0) Fitness = 0;
             if (validation)
             {
@@ -286,7 +286,17 @@ namespace MyCellNet
             ErrorCheck();
         }
 
-
+        public static Hunter HunterFromHumanReadableHunter(string hrh)
+        {
+            Hunter ret = new Hunter().StripChromosomes();
+            string[] tokens = { "This chromosome"}, chromostrings;
+            chromostrings = hrh.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
+            for(int i = 1; i < chromostrings.Length; ++i){
+                string ch = chromostrings[i];
+                ret.AddChromosome(Chromosome.ChromosomeFromHumanReadableChromosome(ch));
+            }
+            return ret;
+        }
 
         public static Hunter[] Crossover(Hunter a, Hunter b)
         {

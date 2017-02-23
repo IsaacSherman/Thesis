@@ -18,10 +18,12 @@ namespace EvoOptimization
         static String trXPath, trYPath, teXPath, teYPath, classNamesPath, datasetName;
         public static String DataSetName { get { return datasetName; } }
         static HashSet<int> xIgnore, yIgnore, xCols, yCols;
+        public static HashSet<int> CategoricalColumns, NumericalColumns, BooleanColumns; 
+
         static bool xBlacklist, yBlacklist;
         internal static void ConfigureForDataset(string globalPath)
         {
-
+            bool catBlackList = false;
             Console.WriteLine(Path.GetFullPath(globalPath));
             globalPath = Path.GetFullPath(globalPath);
             using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(globalPath, FileMode.Open))))
@@ -33,8 +35,12 @@ namespace EvoOptimization
                 trYPath = GetNextNonCommentedLine(fin).Trim();
                 teXPath = GetNextNonCommentedLine(fin).Trim();
                 teYPath = GetNextNonCommentedLine(fin).Trim();
+                CategoricalColumns = new HashSet<int>();
+                BooleanColumns = new HashSet<int>();
                 GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref xIgnore, ref xBlacklist);
                 GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref yIgnore, ref yBlacklist);
+                GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref CategoricalColumns, ref catBlackList);
+                GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref BooleanColumns, ref catBlackList);
 
                 //TODO:
                 //What needs to be in the file?
@@ -59,12 +65,19 @@ namespace EvoOptimization
 
 
             }
-            TrainingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, false) as List<List<Double>>;
+            Object[] tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, trXPath, true, false) as Object[];
+            TrainingXRaw = tempX[0] as List<List<Double>>;
+            TrainingXBools = tempX[1] as List<List<Boolean>>;
+            TrainingXCats = tempX[2] as List<List<String>>;
             NumberOfFeatures = xCols.Count;
-            TrainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, false) as List<List<String>>;
+            TrainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, false, false) as List<List<String>>;
             TrainingYString = Util.TwoDimListToSmoothArray(TrainingYRaw);
-            TestingXRaw = readInDataset(ref xCols, ref xIgnore, xBlacklist, trXPath, true, true) as List<List<Double>>;
-            TestingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, trYPath, false, true) as List<List<String>>;
+            tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, trXPath, true, true) as Object[];
+            TestingXRaw = tempX[0] as List<List<Double>>;
+            TestingXBools = tempX[1] as List<List<Boolean>>;
+            TestingXCats = tempX[2] as List<List<String>>;
+            
+            TestingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, false, true) as List<List<String>>;
             TestingYString = Util.TwoDimListToSmoothArray(TestingYRaw);
 
             AllPredictorNames = GetPredictorNames(xCols, trXPath);
@@ -74,7 +87,6 @@ namespace EvoOptimization
                 throw new InvalidCastException();
             }
             int tempCl = 0;
-            NumberOfFeatures = TrainingXRaw[0].Count;
             ClassDict = new Dictionary<string, int>();
             ClassList = new List<string>();
             tempCl = buildClassListAndDict(tempCl, TrainingYRaw);//If Training and Testing sets are configured correctly, the next line is pointless.
@@ -86,15 +98,28 @@ namespace EvoOptimization
 
             NumberOfClasses = ClassList.Count;
 
-            TrainingXNormed = NormalizeArray(TrainingXRaw, MinMaxNorm, true);
-            TestingXNormed = NormalizeArray(TestingXRaw, MinMaxNorm, false);
+            TrainingXNormed = NormalizeArray(TrainingXRaw, SqueezedMinMaxNorm, true);
+            TestingXNormed = NormalizeArray(TestingXRaw, SqueezedMinMaxNorm, false);
+            NumericalColumns = xCols.SetDifference(CategoricalColumns);
+            NumericalColumns = NumericalColumns.SetDifference(BooleanColumns);
 
             //ClassDict is a translator to convert string classes to integers.  ClassList is a list to do the same thing with integers.
             //ClassList[ClassDict["className"]] is will yield "className", if it is in the dictionary.
             //Datasets are loaded... what's next?  
         }
 
-        delegate List<Double> NormFunction(List<Double> x, List<List<Double>> stats);
+        internal delegate List<Double> NormFunction(List<Double> x, List<List<Double>> stats);
+
+        public static List<Double> SqueezedMinMaxNorm(List<Double> x, List<List<Double>> stats)
+        {
+            const double bottom= .1, top = .9;
+            List<Double> ret = new List<double>(x.Count);
+            for (int i = 0; i < x.Count; ++i)
+            {
+                ret.Add(bottom + (top-bottom)*((x[i] - stats[i][Mins]) / (stats[i][Maxes] - stats[i][Mins])));
+            }
+            return ret;
+        }
 
         public static List<Double> MinMaxNorm(List<Double> x, List<List<Double>> stats)
         {
@@ -117,7 +142,7 @@ namespace EvoOptimization
             }
 
         
-        private static List<List<double>> NormalizeArray(List<List<double>> inArray, NormFunction func, bool trainingSet = true)
+        internal static List<List<double>> NormalizeArray(List<List<double>> inArray, NormFunction func, bool trainingSet = true)
         {
             if (func == null) func = MinMaxNorm;
             List<List<Double>> ret = new List<List<double>>(inArray.Count);
@@ -184,7 +209,7 @@ namespace EvoOptimization
         /// <param name="isXDataset">If an X dataset, will parse data to doubles before returning.  Otherwise, will return as strings</param>
         /// <param name="ignoreFirstLine"></param>
         /// <returns>boxed 2d list, either strings or doubles</returns>
-        private static Object readInDataset(ref HashSet<int> cols, ref HashSet<int> ignoreList, bool blackList, string filePath, bool isXDataset, bool ignoreFirstLine)
+        private static Object readInDataset(ref HashSet<int> cols, ref HashSet<int> ignoreList, bool blackList, ref HashSet<int> BoolCols, HashSet<int> CatCols, string filePath, bool isXDataset, bool ignoreFirstLine)
         {
             using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(filePath, FileMode.Open))))
             {
@@ -199,31 +224,63 @@ namespace EvoOptimization
                 if (isXDataset)
                 {
                     //return value is List<List<Double>>
+                    List<List<Boolean>> bools = new List<List<Boolean>>();
+                    List<List<String>> cats = new List<List<string>>();
                     List<List<Double>> ret = new List<List<Double>>();
                     while (!fin.EndOfStream)
                     {
+                        List<String> tempCats = new List<string>();
                         List<Double> temp = new List<double>();
+                        List<Boolean> tempBools = new List<Boolean>();
                         String line = fin.ReadLine();
                         string[] data = line.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
                         foreach (int i in cols)
                         {
                             double nom;
-                            if (Double.TryParse(data[i].Trim(), out nom))
+                            
+                            if(!CatCols.Contains(i) && ! BoolCols.Contains(i))
                             {
+                                if (Double.TryParse(data[i].Trim(), out nom))
+                                {
                                 temp.Add(nom);
-                            }
-                            else
-                            {
+                                }
+                                else{
+                                    
                                 Console.WriteLine("Error parsing " + data[i].Trim() + " expected a double, got something else, adding NaN to list");
                                 temp.Add(Double.NaN);
+                                }
                             }
-                        }
+                            else if (CatCols.Contains(i))
+                                {
+                                    tempCats.Add(data[i].Trim());
+                                }
+                            else if(BoolCols.Contains(i))
+                                {
+                                    bool foo;
+                                    if (Boolean.TryParse(data[i].Trim(), out foo))
+                                    {
+                                        tempBools.Add(foo);
+                                    }
+                                    else
+                                    {
+                                        short foo2;
+                                        if(Int16.TryParse(data[i].Trim(), out foo2)){
+                                            tempBools.Add(foo2 != 0);
+                                        }
+                                    }
+                                }
+                        
+                            }
+                        
                         ret.Add(temp);
+                        bools.Add(tempBools);
+                        cats.Add(tempCats);
                     }
-                    return ret as Object;
+                    object[] retArray = { ret, bools, cats };
+                    return retArray as Object;
 
                 }
-                else {
+                else {//Y set
                     List<List<String>> ret = new List<List<String>>();
 
                     while (!fin.EndOfStream)
@@ -301,7 +358,7 @@ namespace EvoOptimization
             }
             return ret;
         }
-
+        public static String EnvironmentTag { get; private set; }
         public static double ComplexityCap { get; internal set; }
         public static CrossoverModes CrossoverMode { get; internal set; }
 
@@ -318,7 +375,8 @@ namespace EvoOptimization
         public static Dictionary<String, int> ClassDict;
         public static List<String> ClassList, DataHeaders, yHeaders, AllPredictorNames;
         public static List<List<Double>> TrainingXRaw, TestingXRaw, TrainingXNormed, TestingXNormed, Stats;
-        public static List<List<String>> TrainingYRaw, TestingYRaw;
+        public static List<List<String>> TrainingYRaw, TestingYRaw, TrainingXCats, TestingXCats;
+        public static List<List<Boolean>> TestingXBools, TrainingXBools;
         public static bool[,] TrainingYRawLogical, TestingYRawLogical;
         public static double[,] TrX, TeX;
         public static String[,] TrainingYString, TestingYString;
@@ -502,5 +560,34 @@ namespace EvoOptimization
             RNG = new Random(_seed);
         }
 
+
+        internal static void LoadTagFromFile(string compTagFile)
+        {
+            using (StreamReader fin = new StreamReader(compTagFile))
+            {
+                if (!fin.EndOfStream)
+                {
+                    EnvironmentTag = fin.ReadLine().Trim();
+                }
+                else EnvironmentTag = "NoTag"; 
+            }
+        }
+
+        public static void CreateDirectoryAndThenFile(string path)
+        {
+            char[] tokens = { '/', '\\' };
+            string temp = path.Substring(0, path.LastIndexOfAny(tokens));
+            if (!Directory.Exists(temp)) Directory.CreateDirectory(temp);
+            File.Create(path).Close();
+
+        }
+
+
+
+
+
+        public const double FalseDoubleVal = .25;
+
+        public const double TrueDoubleVal = .75;
     }
 }

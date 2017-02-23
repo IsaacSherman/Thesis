@@ -4,6 +4,7 @@ using System.Text;
 using MyUtils;
 using System.Diagnostics;
 using EvoOptimization;
+using System.IO;
 
 namespace MyCellNet
 {
@@ -276,7 +277,7 @@ namespace MyCellNet
                 evalLimits();
             }
 
-            if (bitsInRange(_functionStart, _functionStart + _functionLength).BinaryStringToInt() > NumberOfFunctions)
+            if (bitsInRange(_functionStart, _functionStart + _functionLength).BinaryStringToInt() >= NumberOfFunctions)
             {
                 rerollBits(_functionStart, _functionStart + _functionLength);
                 ErrorCheck();
@@ -433,5 +434,40 @@ namespace MyCellNet
         #endregion
 
 
+
+        internal static Cell CellFromHumanReadableCell(string hrc)
+        {
+            Cell ret = new Cell();
+            StringReader sin = new StringReader(hrc);
+            string line = sin.ReadLine();
+            int featureIndex = line.IndexOf("feature")+7;
+            line = line.Substring(featureIndex, line.Length-featureIndex).Trim();
+            int feature = Int16.Parse(line);
+            BitArray featureBits = Util.BitsFromInt(Cell._functionLength, feature);
+            for (int i = 0; i < featureBits.Length; ++i)
+            {
+                ret._bits[_functionStart + i] = featureBits[i];
+            }
+            line = sin.ReadLine();
+            string[] tokens = { "between ", " and " }, lims;
+            double llim, ulim;
+            lims = line.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
+            llim = double.Parse(lims[1].Trim());
+            ulim = double.Parse(lims[2].Substring(0, lims[2].IndexOf(" standard")));
+            llim *= 1 << limitLength;
+            ulim *= 1 << limitLength;
+            BitArray llimBits, ulimBits;
+            llimBits = Util.BitsFromInt(limitLength, (int)llim);
+            ulimBits = Util.BitsFromInt(limitLength, (int)ulim);
+            for (int i = 0; i < llimBits.Length; ++i)
+            {
+                ret._bits[_lLimitStart + i] = llimBits[i];
+                ret._bits[_uLimitStart + i] = ulimBits[i];
+            }
+            bool notFlag = !lims[0].Contains(" not");
+            ret._bits[_notFlagStart] = notFlag;
+
+            return ret;
+        }
     }
 }

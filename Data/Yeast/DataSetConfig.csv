@@ -14,3 +14,7 @@ YeastData
 b, 0, 9
 #Y ignore list, as above
 w, 9
+#Categorical Variables, white/blacklist, comma separated
+w, 
+#Boolean Variables, as above
+w, 

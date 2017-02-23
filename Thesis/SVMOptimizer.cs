@@ -38,7 +38,11 @@ namespace EvoOptimization.SVMOptimizationNET40
         static SVMOptimizer()
         {
             _optimizerToken = "SVM";
-            functionString = "svmTrainPoly";
+        }
+
+        protected override string getFunctionString()
+        {
+            return "svmTrainPoly";
         }
 
         static public double[,] costMatrix = { { 0, 1 }, { 10, 0 } };

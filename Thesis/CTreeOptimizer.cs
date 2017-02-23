@@ -40,6 +40,7 @@ namespace EvoOptimization.CTreeOptimizer
 
         }
 
+        static private new string _optimizerToken;
 
         private void AssignSplitCriterion()
         {
@@ -81,8 +82,13 @@ namespace EvoOptimization.CTreeOptimizer
         static CTreeOptimizer()
         {
             _optimizerToken = "CTree";
-            functionString = "trainCTree";
         }
+
+        protected override string getFunctionString()
+        {
+            return "trainCTree";
+        }
+           
 
         protected override object[] getObjArgs()
         {
@@ -139,5 +145,7 @@ namespace EvoOptimization.CTreeOptimizer
 
 
         }
+
+        public override string GetToken { get { return _optimizerToken; } }
     }
 }

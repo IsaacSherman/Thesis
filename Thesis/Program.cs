@@ -3,7 +3,7 @@
 using MyCellNet;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.IO;
 namespace EvoOptimization
 {
     class Program
@@ -13,10 +13,19 @@ namespace EvoOptimization
 
         static void Main(string[] args)
         {
+            string compTagFile = @"..\..\compTag.txt";
+                if (System.IO.File.Exists(compTagFile)){
+                    OptoGlobals.LoadTagFromFile(compTagFile);
+                }
+                else{
+                    using (System.IO.StreamWriter fout = new System.IO.StreamWriter(compTagFile)){
+                        fout.WriteLine("NoTag");
+                    }
+                }
 
-
+                OptoGlobals.IsDebugMode = false;
             // Create the MATLAB instance 
-            String GlobalPath = "../../../Data/Yeast/DataSetConfig.csv";
+            String GlobalPath = "../../../Data/Bach/DataSetConfig.csv";
             int maxGen = 100, saveAfterGens = 25, popSize = 50, baseCompUB = 10, maxComp = 100;
 
             if (args.Length >= 2) { GlobalPath = args[1]; }
@@ -63,7 +72,6 @@ namespace EvoOptimization
             decisionTreeProgram.MaxGen = maxGen;
             decisionTreeProgram.SaveAfterGens = saveAfterGens;
             decisionTreeProgram.PopSize = popSize;
-            //decisionTreeProgram.ConfigureAndRun();
 
             MulticlassNBOptimizer.MulticlassNBOptimizer.RewriteBits();
             EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer> naiveBayesProgram = new EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer>();
@@ -81,10 +89,15 @@ namespace EvoOptimization
             D.MaxCellComplexity = maxComp;
             D.ConfigureCellDelegatesForDatabase();
 
-            SerializationChecks();
-            //naiveBayesProgram.ConfigureAndRun();
 
             D.Run();
+
+            decisionTreeProgram.ConfigureAndRun();
+            naiveBayesProgram.ConfigureAndRun();
+
+
+
+            SerializationChecks();
 
         }
 

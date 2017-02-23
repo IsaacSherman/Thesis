@@ -39,11 +39,14 @@ namespace EvoOptimization
             {
                 _population.Add(new T());
             }
-            _outputPath = "OutputTable" + FileStem + ".csv";
-            _currentGenPath = "CurrentGenPop" + FileStem + ".csv";
+            _outputPath = FileStem + "OutputTable.csv";
+            _currentGenPath = FileStem + "CurrentGenPop.csv";
             _lookup = new Dictionary<string, Tuple<Double,Double>>();
             if (File.Exists(_outputPath)) readLookupFromFile();
-            else File.Create(_outputPath);
+            else
+            {
+                OptoGlobals.CreateDirectoryAndThenFile(_outputPath);
+            }
             if (FocusOnAllColumns) SetPopToAllCols();     
             if (ReadInCurrentGeneration)
             {
@@ -54,8 +57,10 @@ namespace EvoOptimization
 
         }
 
+
         private void dumpPopulationToFile()
         {
+            OptoGlobals.CreateDirectoryAndThenFile(_currentGenPath);
             using (StreamWriter fout = new StreamWriter(File.Create(_currentGenPath)))
             {
                 foreach (Optimizer O in Population)
@@ -418,24 +423,27 @@ namespace EvoOptimization
 
         public virtual void DumpLookupToFile(string p)
         {
+            char[] tokens = { '/', '\\' };
+            _outputPath = p + "/OutputTable"  + Population[0].GetToken + generation + ".csv";
+            string baseDir = p.Substring(0, p.LastIndexOfAny(tokens)+1), fileName = p.Substring(baseDir.Length);
             if (Population[0].GetConfusionMatrix().totalReportedNegatives == Population[0].GetConfusionMatrix().totalReportedPositives) Population[0].Eval();
             SortedList<String, Tuple<Double, Double>> output = new SortedList<string, Tuple<Double, Double>>(_lookup);
-            char[] nums = { '0', '5', '.'};
-            string saveToken = p.Substring(0, p.IndexOfAny(nums));
-                    _population[0].Save(saveToken+"Best" + generation);
 
-                using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create("LabelsFromBest" + p))))
+            string saveToken = p + "/"; 
+                    _population[0].Save(saveToken+"Best" + generation);
+                
+                using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create(baseDir + "LabelsFromBest" + fileName))))
                 {
                     fout2.WriteLine(_population[0].ToString() + ", ");
                     _population[0].DumpLabelsToStream(fout2);
                 }
-                using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create("CVLabelsFromBest" + p))))
+                using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create(baseDir + "CVLabelsFromBest" + fileName))))
                 {
                     fout2.WriteLine(_population[0].ToString() + ", ");
                     _population[0].DumpCVLabelsToStream(fout2);
             }
                     DumpLookupFailSafe(output);
-            using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create(FileStem + "CumulativeFitness.csv"))))
+            using (StreamWriter fout2 = new StreamWriter(new BufferedStream(File.Create(baseDir + "CumulativeFitness.csv"))))
             {
 
                 StringBuilder genLine = new StringBuilder("Generation:,"), avgLine = new StringBuilder("Average Fitness:,"), bestLine = new StringBuilder("Best Fitness:,");

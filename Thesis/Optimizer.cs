@@ -8,7 +8,7 @@ namespace EvoOptimization
     public abstract class Optimizer : IComparable<Optimizer>, IHazFitness
     {
         protected static int firstFeature = 0;// OptoGlobals.NumberOfFeatures;
-        public string GetToken { get { return _optimizerToken; } }
+        public virtual string GetToken { get { return _optimizerToken; } }
         protected void PrepForSave(string path, System.Security.AccessControl.DirectorySecurity temp)
         {
 
@@ -42,6 +42,7 @@ namespace EvoOptimization
         private double[,] extractConfusionMatrix()
         {
             double[,] ret = new double[OptoGlobals.NumberOfClasses, OptoGlobals.NumberOfClasses];
+            if (GeneratedLabels == null) Eval();
             for (int i = 0; i < GeneratedLabels.Count; ++i )
             {
                 int row = OptoGlobals.testingYIntArray[i,0];
@@ -78,7 +79,7 @@ namespace EvoOptimization
             return ret;
         }
 
-        protected static string functionString;
+        protected abstract string getFunctionString();
         protected List<List<Double>> myTeX, myTrX;
         protected List<int> SuspectRows;
         public List<int> GeneratedLabels = null, CVGeneratedLabels = null, PredictorLabels = null;
@@ -193,7 +194,8 @@ namespace EvoOptimization
         public virtual void Save(string path)
         {
             PrepForSave(path);//Creates directory
-            string fullPath = System.IO.Path.GetFullPath(path) + "\\" + path.Substring(path.LastIndexOf('\\') + 1);
+            char[] tokens = {'/', '\\'};
+            string fullPath = System.IO.Path.GetFullPath(path) + "\\" + path.Substring(path.LastIndexOfAny(tokens) + 1);
 
             if (OptoGlobals.UseMWArrayInterface)
             {
@@ -231,7 +233,9 @@ protected static List<int> extractNumericLabels(String blockString)
             setFeatures();
             object[] args = getObjArgs();
             object argsOut;
-                            OptoGlobals.executor.Feval("longMCSave", 2, out argsOut, doSave, path, functionString, _nLearners, Util.TwoDimListToSmoothArray(myTrX), Util.TwoDimListToSmoothArray(myTeX), 
+            OptoGlobals.CreateDirectoryAndThenFile(path);
+                            OptoGlobals.executor.Feval("longMCSave", 2, out argsOut, doSave, path, getFunctionString(), 
+                                _nLearners, Util.TwoDimListToSmoothArray(myTrX), Util.TwoDimListToSmoothArray(myTeX), 
                 OptoGlobals.trainingYIntArray, OptoGlobals.testingYIntArray, myBaseLabels,args);
             
             object[] parsedArgsOut = (object[])argsOut;
@@ -307,8 +311,8 @@ protected static List<int> extractNumericLabels(String blockString)
 
             List<List<Double>> baseMatrix = OptoGlobals.TrainingXRaw;
 
-            myTeX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.TestingXRaw));
-            myTrX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.TrainingXRaw));
+            myTeX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.TestingXNormed));
+            myTrX = Util.ArrayTo2dList(reduceMatrix(cols, OptoGlobals.TrainingXNormed));
 
             myBaseLabels = reduceLabels(cols, OptoGlobals.AllPredictorNames);
 
@@ -429,7 +433,7 @@ protected static List<int> extractNumericLabels(String blockString)
             double[,] tex = Util.TwoDimListToSmoothArray(myTeX), trx = Util.TwoDimListToSmoothArray(myTrX);
             try
             {
-                    OptoGlobals.executor.Feval(Optimizer.functionString, 3, out argsOutObj, trx, tex,
+                    OptoGlobals.executor.Feval(getFunctionString(), 3, out argsOutObj, trx, tex,
                     OptoGlobals.trainingYIntArray, OptoGlobals.testingYIntArray, myBaseLabels, _nLearners, args);
              
 

@@ -5,6 +5,7 @@ using System.Text;
 using MyUtils;
 using EvoOptimization;
 using System.Diagnostics;
+using System.IO;
 
 namespace MyCellNet
 {
@@ -593,5 +594,41 @@ namespace MyCellNet
             }
 
         #endregion
+
+        internal static Chromosome ChromosomeFromHumanReadableChromosome(string hrc)
+        {
+
+            StringReader sin =new StringReader(hrc);
+            Chromosome ret = new Chromosome();
+            ret.cells = new List<Cell>();
+            bool success = false;
+            string affinity = sin.ReadLine().Trim();
+            for(int i = 0; i < 4; ++i){
+                if(affinity == affinityStrings[i]){
+                    ret.affinityBits=MyUtils.Util.BitsFromInt(2, i);
+                    success = true;
+                    break;
+                }
+            }
+            if (success)
+            {
+                sin.ReadLine();
+                string classStr = sin.ReadLine().Trim();
+                int classInt = OptoGlobals.ClassDict[classStr];
+                ret.classBits = Util.BitsFromInt(Chromosome.ClassBitLength, classInt);
+            }
+
+            string line = sin.ReadLine();
+
+            ret.notFlag = line.Contains("nay");
+
+            string [] tokens = { "This cell"}, cellStrings;
+            cellStrings = hrc.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 1; i < cellStrings.Length; ++i )
+            {
+                ret.AddCell(Cell.CellFromHumanReadableCell(cellStrings[i]));
+            }
+            return ret;
+        }
     }
 }

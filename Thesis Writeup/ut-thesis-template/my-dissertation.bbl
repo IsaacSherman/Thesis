@@ -1,0 +1,25 @@
+\begin{thebibliography}{}
+
+\bibitem[Fermi, 1956]{Fermi1956}
+Fermi, E. (1956).
+\newblock {\em Thermodynamics}.
+\newblock Dover Publications.
+
+\bibitem[Lamb, 1895]{Lamb1895}
+Lamb, H. (1895).
+\newblock {\em Hydrodynamics}.
+\newblock Cambridge University Press, Cambridge, UK.
+
+\bibitem[Liepmann and Roshko, 2001]{liepmann2001}
+Liepmann, H. and Roshko, A. (2001).
+\newblock {\em {Elements of gasdynamics}}.
+\newblock Dover Pubns.
+
+\bibitem[Saad and Majdalani, 2010]{Saad2010RSPA}
+Saad, T. and Majdalani, J. (2010).
+\newblock On the {L}agrangian optimization of wall-injected flows: from the
+  {Hart-–McClure} potential to the {Taylor-–Culick} rotational motion.
+\newblock {\em Proceedings of the Royal Society A: Mathematical, Physical and
+  Engineering Science}, 466(2114):331--362.
+
+\end{thebibliography}

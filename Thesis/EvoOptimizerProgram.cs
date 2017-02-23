@@ -14,7 +14,7 @@ namespace EvoOptimization
         OptimoEvolver<T> D;
      
         private OptimoEvolver<T>.CrossoverType _crossOverType = OptimoEvolver<T>.CrossoverType.Uniform;
-        private string _bestFilePath;
+        private string _bestFilePath, _outputFileStem;
 
         public int SaveAfterGens
         {
@@ -143,7 +143,33 @@ namespace EvoOptimization
 
         public bool IncludeAllFeatures { get; private set; }
 
-        public string OutputFileStem { get; private set; }
+        public string OutputFileStem
+        {
+            get
+            {
+                return _outputFileStem;
+            }
+            private set
+            {
+                if (_outputFileStem != null)
+                {
+                    char []tokens = { '/', '\\' };
+                    string old = OutputFileStem.Substring(0, OutputFileStem.LastIndexOfAny(tokens));
+                    int count = 0;
+                    if (Directory.Exists(old))
+                    {
+                        foreach (string x in Directory.EnumerateFileSystemEntries(old))
+                        {
+                            ++count;
+                            break;
+                        }
+                        if (count == 0) Directory.Delete(old);
+                    }
+                }
+                _outputFileStem = value;
+                 
+            }
+        }
 
 
         /// <summary>
@@ -157,8 +183,8 @@ namespace EvoOptimization
 
         public EvoOptimizerProgram()
         {
+            checkDirectoryExists("./" + OptoGlobals.EnvironmentTag);
             T bob = new T();
-            _bestFilePath = bob.GetToken + "best.csv";
 
         }
 
@@ -168,8 +194,11 @@ namespace EvoOptimization
         /// </summary>
         public void ConfigureEvolver()
         {
-
-            if (OutputFileStem == null)  OutputFileStem = new T().GetToken;
+            T temp = new T();
+            if (OutputFileStem == null)  OutputFileStem = OptoGlobals.EnvironmentTag +"/" + OptoGlobals.DataSetName + "/" + temp.GetToken;
+            _bestFilePath = OutputFileStem + "best.csv";
+            checkDirectoryExists(OptoGlobals.EnvironmentTag + "/");
+            checkDirectoryExists(OptoGlobals.EnvironmentTag + "/" + OptoGlobals.DataSetName + "/");
             D = new OptimoEvolver<T>(_popSize, _crossOverType, OutputFileStem ,!_noload);
             LoadBestFromFile(_bestFilePath);
             int q = 1;
@@ -181,6 +210,11 @@ namespace EvoOptimization
             D.MultiThread = _multiThread;
             if (IncludeAllFeatures) D.SetPopToAllCols();
             
+        }
+
+        private static void checkDirectoryExists(string path)
+        {
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path + "/");
         }
 
         private void LoadBestFromFile(String path)
@@ -215,7 +249,7 @@ namespace EvoOptimization
             {
                 //Run a simulation including all features to find the best combination of parameters for the particular classifier
                 T baseline = new T();
-                string basePath = baseline.GetToken + "Baseline";
+                string basePath = OptoGlobals.EnvironmentTag + "/" + OptoGlobals.DataSetName + "/" + baseline.GetToken + "Baseline";
                 EvoOptimizerProgram<T> baseProgram = new EvoOptimizerProgram<T>();
                 baseProgram.MaxGen = 100;
                 baseProgram.SaveAfterGens = 25;
@@ -225,7 +259,6 @@ namespace EvoOptimization
                 baseProgram.Noload = true;
                 baseProgram._outputBaseline = false;
                 baseProgram.ConfigureAndRun();
-               
             }
 
             Stopwatch sw = new Stopwatch();
@@ -237,7 +270,6 @@ namespace EvoOptimization
                 Debug.WriteLine("Elapsed time for generation " + x + " = " + sw.ElapsedMilliseconds + "  ms");
                 Console.WriteLine("Elapsed time for generation " + x + " = " + sw.ElapsedMilliseconds + "  ms");
 
-                Console.WriteLine("Average number of columns = " + D.GetAverageFeatureCount());
                 double sum = 0, count = 0;
                 foreach(T t in D.Population)
                 {
@@ -245,10 +277,11 @@ namespace EvoOptimization
                     count += 1;
                 }
                 Console.WriteLine("Best Fitness = " + D.Population[0].Fitness + " \n Average fitness = " + D.AverageFitness);
-                if (x % _saveAfterGens == 0) D.DumpLookupToFile(OutputFileStem + x + ".csv");
+                if (x % _saveAfterGens == 0) D.DumpLookupToFile(OutputFileStem);
                 sw.Reset();
             }
-            D.DumpLookupToFile(OutputFileStem + "FinalTable.csv");
+            D.DumpLookupToFile(OutputFileStem);
+            OutputFileStem = null;
             //Console.ReadLine();
         }
     }

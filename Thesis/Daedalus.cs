@@ -42,7 +42,7 @@ namespace MyCellNet
             MaxCellComplexity = 100;
             generation = 0;
         }
-
+        private Dictionary<String, Double> categoryValues;
         internal void ConfigureCellDelegatesForDatabase()
         {
             Cell.SetNumberOfFeatures();
@@ -51,24 +51,79 @@ namespace MyCellNet
             ///Cells expect double[] to their delegates, in this iteration (it's easily subclassed and changed)
             ///the next few lines populate static variables that hold the data in the format expected.
             ///Purely done for simplicity.
-            trainingSet = setFromCollection(OptoGlobals.TrainingXNormed);
-            validationSet = setFromCollection(OptoGlobals.TestingXNormed);
+            trainingSet = setFromCollection(OptoGlobals.TrainingXNormed, OptoGlobals.TrainingXCats, OptoGlobals.TrainingXBools);
+
+            validationSet = setFromCollection(OptoGlobals.TestingXNormed, OptoGlobals.TestingXCats, OptoGlobals.TestingXBools);
+
+            OptoGlobals.TrainingXNormed = ListArrayToListList(trainingSet);
+            OptoGlobals.TestingXNormed = ListArrayToListList(validationSet);
+
             trainingY = new List<int>(MyUtils.Util.Flatten2dArray(OptoGlobals.trainingYIntArray));
             validationY = new List<int>(MyUtils.Util.Flatten2dArray(OptoGlobals.testingYIntArray));
            
         }
 
-        private List<double[]> setFromCollection(List<List<double>> set)
-        {
-            List<Double[]> ret = new List<double[]>(set.Count);
-            foreach (List<Double> x in set) ret.Add(x.ToArray());
+        public static List<List<T>> ListArrayToListList<T>(List<T[]> a){
+            List<List<T>> ret = new List<List<T>>(a.Count);
+            foreach (T[] x in a)
+                ret.Add(new List<T>(x));
             return ret;
+        }
+
+        private List<double[]> setFromCollection(List<List<double>> set, List<List<String>> catSet, List<List<Boolean>> boolSet)
+        {
+            Dictionary<String, List<Double>> meanSumDict = new Dictionary<string, List<double>>();
+            List<List<Double>> ret = new List<List<Double>>(set.Count);
+            for (int i = 0; i < set.Count;  ++i){
+                List<Double> x = set[i];
+                for (int j = 0; j < catSet[i].Count; ++j)
+                {
+                    if (!meanSumDict.ContainsKey(catSet[i][j]))
+                    {
+                        double[] empty = { 0, 0 };
+                        meanSumDict.Add(catSet[i][j], new List<double>(empty));
+                    }
+                    List<Double> sc = meanSumDict[catSet[i][j]];
+                    foreach (double d in x)
+                    {
+                        sc[0] += d;
+                        sc[1] += 1;
+                    }
+                }
+            }//We have now calculated sums and counts for every categorical
+            categoryValues = new Dictionary<string, double>();
+            foreach (String key in meanSumDict.Keys)
+            {
+                categoryValues.Add(key, meanSumDict[key][0] / meanSumDict[key][1]);//Now, we have means for every categorical
+            }
+            for (int i = 0; i < set.Count; ++i)
+            {
+                List<Double> x = set[i];
+                for (int j = 0; j < catSet[i].Count; ++j)
+                {
+                    x.Add(categoryValues[catSet[i][j]]);//Append normed Cats and Bools to the end here and below
+                }
+                for (int j = 0; j < boolSet[i].Count; ++j)
+                {
+                    x.Add(boolSet[i][j]? OptoGlobals.FalseDoubleVal:OptoGlobals.TrueDoubleVal);
+                }
+                
+                ret.Add(x);
+            }
+            ret = OptoGlobals.NormalizeArray(ret, OptoGlobals.SqueezedMinMaxNorm, true);
+            List<Double[]> realRet = new List<Double[]>();
+            foreach (List<Double> r in ret)
+            {
+                realRet.Add(r.ToArray());
+            }
+            return realRet;
 
         }
 
         internal void Run()
         {
             population = new List<Hunter>(PopSize);
+            
             bool successfulLoad = loadBestHunter();
             for (int i = (successfulLoad? 1:0); i < PopSize; ++i)
             {
@@ -86,6 +141,7 @@ namespace MyCellNet
                 population.Add(temp);
 
             }
+
             for (generation = 0; generation < MaxGen; ++generation)
             {
                 advanceGeneration();
@@ -166,7 +222,7 @@ namespace MyCellNet
         /// </summary>
         private void dumpData()
         {
-            string directory = "./" + OptoGlobals.DataSetName + "Daedalus/";
+            string directory = "./" + OptoGlobals.EnvironmentTag + OptoGlobals.DataSetName + "Daedalus/";
             if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
             using (StreamWriter fout = new StreamWriter(new FileStream(directory + popfileName, FileMode.Create)))
             {
@@ -204,6 +260,11 @@ namespace MyCellNet
                 x.DeleteLastChar();
                 fout.WriteLine(x.ToString());
                 x = new StringBuilder();
+                if (cm == null)
+                {
+                    best.EvaluateSet(trainingSet, trainingY, false);
+                    cm = best.ConfusionMatrix;
+                }
 
                 for (int i = 0; i < OptoGlobals.NumberOfClasses; ++i)
                 {
@@ -227,7 +288,7 @@ namespace MyCellNet
 
         private bool loadBestHunter()
         {
-            string directory = "./" + OptoGlobals.DataSetName + "Daedalus/";
+            string directory = "./" + OptoGlobals.EnvironmentTag+ OptoGlobals.DataSetName + "Daedalus/";
             if (!Directory.Exists(directory)) return false;
             using (StreamReader fin = new StreamReader(directory + "bestHunter.csv"))
             {
@@ -374,7 +435,12 @@ namespace MyCellNet
 
 
 
+
+        internal void InsertHunter(Hunter test)
+        {
+            population[PopSize - 3] = test;
         }
+    }
 
     
 }

@@ -17,12 +17,20 @@ namespace EvoOptimization.MulticlassNBOptimizer
         private static int _numClasses { get { return OptoGlobals.ClassList.Count; } }
         double[] _prior = new double[_numClasses];
         String _distName, _kernelType, _scoreTransform;
+        private static new string _optimizerToken;
         static MulticlassNBOptimizer()
         {
-            _optimizerToken = "McNB";
-            functionString = "trainMulticlassNB";
             Multiclass = true;
+            _optimizerToken = "McNB";
         }
+
+        public override string GetToken { get { return "McNB"; } }
+        protected override string getFunctionString()
+        {
+            return "trainMulticlassNB";
+        }
+
+//        private override string functionString() {return "trainMulticlassNB";}
 
         public MulticlassNBOptimizer(): base(_mcnbBitLength)
         {

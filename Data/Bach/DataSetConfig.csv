@@ -14,3 +14,7 @@ BachChorales
 b, 0, 16
 #Y ignore list, as above
 w, 16
+#Categorical Variables, white/blacklist, comma separated
+w, 14, 15
+#Boolean Variables, as above
+w, 

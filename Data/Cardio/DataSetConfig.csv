@@ -14,3 +14,7 @@ CardioData
 b, 29, 30
 #Y ignore list, as above
 w, 29
+#Categorical Variables, white/blacklist, comma separated
+w, 
+#Boolean Variables, as above
+w, 
