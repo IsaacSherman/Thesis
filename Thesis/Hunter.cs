@@ -155,7 +155,7 @@ namespace MyCellNet
                 rightPerClass[i] = (double)ConfusionMatrix[i, i] / (1+countPerClass[i]);
                 zerosPerClass += (predictionPerClass[i] == 0 ? 1 : 0);
             }
-            Fitness = rightPerClass.Average()-(.5/OptoGlobals.NumberOfClasses) * zerosPerClass;
+           Fitness = rightPerClass.Average()*(double)(OptoGlobals.NumberOfClasses- zerosPerClass)/OptoGlobals.NumberOfClasses;
             if (Fitness < 0) Fitness = 0;
             if (validation)
             {

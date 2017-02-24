@@ -51,74 +51,10 @@ namespace MyCellNet
             ///Cells expect double[] to their delegates, in this iteration (it's easily subclassed and changed)
             ///the next few lines populate static variables that hold the data in the format expected.
             ///Purely done for simplicity.
-            trainingSet = setFromCollection(OptoGlobals.TrainingXNormed, OptoGlobals.TrainingXCats, OptoGlobals.TrainingXBools);
-
-            validationSet = setFromCollection(OptoGlobals.TestingXNormed, OptoGlobals.TestingXCats, OptoGlobals.TestingXBools);
-
-            OptoGlobals.TrainingXNormed = ListArrayToListList(trainingSet);
-            OptoGlobals.TestingXNormed = ListArrayToListList(validationSet);
-
-            trainingY = new List<int>(MyUtils.Util.Flatten2dArray(OptoGlobals.trainingYIntArray));
-            validationY = new List<int>(MyUtils.Util.Flatten2dArray(OptoGlobals.testingYIntArray));
            
         }
 
-        public static List<List<T>> ListArrayToListList<T>(List<T[]> a){
-            List<List<T>> ret = new List<List<T>>(a.Count);
-            foreach (T[] x in a)
-                ret.Add(new List<T>(x));
-            return ret;
-        }
 
-        private List<double[]> setFromCollection(List<List<double>> set, List<List<String>> catSet, List<List<Boolean>> boolSet)
-        {
-            Dictionary<String, List<Double>> meanSumDict = new Dictionary<string, List<double>>();
-            List<List<Double>> ret = new List<List<Double>>(set.Count);
-            for (int i = 0; i < set.Count;  ++i){
-                List<Double> x = set[i];
-                for (int j = 0; j < catSet[i].Count; ++j)
-                {
-                    if (!meanSumDict.ContainsKey(catSet[i][j]))
-                    {
-                        double[] empty = { 0, 0 };
-                        meanSumDict.Add(catSet[i][j], new List<double>(empty));
-                    }
-                    List<Double> sc = meanSumDict[catSet[i][j]];
-                    foreach (double d in x)
-                    {
-                        sc[0] += d;
-                        sc[1] += 1;
-                    }
-                }
-            }//We have now calculated sums and counts for every categorical
-            categoryValues = new Dictionary<string, double>();
-            foreach (String key in meanSumDict.Keys)
-            {
-                categoryValues.Add(key, meanSumDict[key][0] / meanSumDict[key][1]);//Now, we have means for every categorical
-            }
-            for (int i = 0; i < set.Count; ++i)
-            {
-                List<Double> x = set[i];
-                for (int j = 0; j < catSet[i].Count; ++j)
-                {
-                    x.Add(categoryValues[catSet[i][j]]);//Append normed Cats and Bools to the end here and below
-                }
-                for (int j = 0; j < boolSet[i].Count; ++j)
-                {
-                    x.Add(boolSet[i][j]? OptoGlobals.FalseDoubleVal:OptoGlobals.TrueDoubleVal);
-                }
-                
-                ret.Add(x);
-            }
-            ret = OptoGlobals.NormalizeArray(ret, OptoGlobals.SqueezedMinMaxNorm, true);
-            List<Double[]> realRet = new List<Double[]>();
-            foreach (List<Double> r in ret)
-            {
-                realRet.Add(r.ToArray());
-            }
-            return realRet;
-
-        }
 
         internal void Run()
         {
@@ -262,7 +198,7 @@ namespace MyCellNet
                 x = new StringBuilder();
                 if (cm == null)
                 {
-                    best.EvaluateSet(trainingSet, trainingY, false);
+                    best.EvaluateSet(OptoGlobals.DaedalusTrainingSet, OptoGlobals.DaedalusTrainingY, false);
                     cm = best.ConfusionMatrix;
                 }
 
@@ -320,8 +256,6 @@ namespace MyCellNet
         }
 
 
-        static private List<Double[]> trainingSet, validationSet;
-        static private List<int> trainingY, validationY;
 
 
         private void evaluatePopulation()
@@ -331,7 +265,7 @@ namespace MyCellNet
             foreach (Hunter x in population)
             {
                 x.ErrorCheck();
-                threadPool.Add(new Thread(() => x.EvaluateSet(trainingSet, trainingY)));
+                threadPool.Add(new Thread(() => x.EvaluateSet(OptoGlobals.DaedalusTrainingSet, OptoGlobals.DaedalusTrainingY)));
             }
             foreach (Thread t in threadPool)
             {

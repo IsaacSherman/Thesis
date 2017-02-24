@@ -530,6 +530,16 @@ namespace MyUtils
             x.Remove(x.Length - 1, 1);
             return x;
         }
+
+
+        public static List<List<T>> ListArrayToListList<T>(this List<T[]> a)
+        {
+            List<List<T>> ret = new List<List<T>>(a.Count);
+            foreach (T[] x in a)
+                ret.Add(new List<T>(x));
+            return ret;
+        }
+
     }
 }
 

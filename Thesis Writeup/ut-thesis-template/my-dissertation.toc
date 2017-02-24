@@ -1,18 +1,22 @@
 \contentsline {chapter}{List of Tables}{ix}{section*.13}
 \contentsline {chapter}{List of Figures}{x}{section*.15}
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}
-\contentsline {section}{\numberline {1.1}Disclaimer}{1}{section.1.1}
-\contentsline {section}{\numberline {1.2}Getting started}{2}{section.1.2}
-\contentsline {section}{\numberline {1.3}References}{5}{section.1.3}
-\contentsline {section}{\numberline {1.4}Theorem environments}{5}{section.1.4}
-\contentsline {section}{\numberline {1.5}Figures}{6}{section.1.5}
-\contentsline {subsection}{\numberline {1.5.1}Single figures}{6}{subsection.1.5.1}
-\contentsline {subsection}{\numberline {1.5.2}Multipart figures}{7}{subsection.1.5.2}
-\contentsline {chapter}{\numberline {2}Derivation of the Navier-Stokes Equations}{8}{chapter.2}
-\contentsline {chapter}{\numberline {3}Computational Fluid Dynamics}{9}{chapter.3}
-\contentsline {chapter}{\numberline {4}Conclusions}{10}{chapter.4}
-\contentsline {chapter}{Bibliography}{11}{section*.22}
-\contentsline {chapter}{\numberline {A}Summary of Equations}{14}{appendix.A}
-\contentsline {section}{\numberline {A.1}Cartesian}{14}{section.A.1}
-\contentsline {section}{\numberline {A.2}Cylindrical}{14}{section.A.2}
-\contentsline {chapter}{Vita}{15}{section*.24}
+\contentsline {paragraph}{Genetic Algorithms Introduction}{1}{section*.18}
+\contentsline {subparagraph}{Stopping Conditions}{2}{section*.19}
+\contentsline {subparagraph}{Solution Encodings}{2}{section*.20}
+\contentsline {subparagraph}{Fitness Functions}{3}{section*.21}
+\contentsline {subparagraph}{Breeding and Survival}{4}{section*.22}
+\contentsline {subparagraph}{Mutation}{6}{section*.24}
+\contentsline {paragraph}{Drawbacks}{7}{section*.25}
+\contentsline {subparagraph}{Swiss-Army Chainsaw}{7}{section*.26}
+\contentsline {subparagraph}{And Quick to Anger}{7}{section*.27}
+\contentsline {subparagraph}{Toolset}{8}{section*.28}
+\contentsline {paragraph}{Theoretic Underpinnings}{8}{section*.29}
+\contentsline {chapter}{\numberline {2}Derivation of the Navier-Stokes Equations}{9}{chapter.2}
+\contentsline {chapter}{\numberline {3}Computational Fluid Dynamics}{10}{chapter.3}
+\contentsline {chapter}{\numberline {4}Conclusions}{11}{chapter.4}
+\contentsline {chapter}{Bibliography}{12}{section*.30}
+\contentsline {chapter}{\numberline {A}Summary of Equations}{15}{appendix.A}
+\contentsline {section}{\numberline {A.1}Cartesian}{15}{section.A.1}
+\contentsline {section}{\numberline {A.2}Cylindrical}{15}{section.A.2}
+\contentsline {chapter}{Vita}{16}{section*.32}

@@ -53,8 +53,8 @@ namespace EvoOptimization
                 ///ignore all lines beginning with #
                 ///Dataset Name
                 ///Class Names File
-                ///TrainingSet X Path
-                ///TrainingSet Y Path
+                ///DaedalusTrainingSet X Path
+                ///DaedalusTrainingSet Y Path
                 ///TestingSet  X Path
                 ///TestingSet  Y Path
                 ///X ignore list, comma separated and starting with w if it's a whitelist (otherwise, blacklist)
@@ -80,33 +80,54 @@ namespace EvoOptimization
             TestingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, false, true) as List<List<String>>;
             TestingYString = Util.TwoDimListToSmoothArray(TestingYRaw);
 
+
+            TrainingXNormed = NormalizeArray(TrainingXRaw, SqueezedMinMaxNorm, true);
+            TestingXNormed = NormalizeArray(TestingXRaw, SqueezedMinMaxNorm, false);
+
+            Dictionary<String, List<Double>> meanSumDict = new Dictionary<string, List<double>>();
+            gatherCategoricalMeans(TrainingXNormed, TrainingXCats, meanSumDict);
+            gatherCategoricalMeans(TestingXNormed, TestingXCats, meanSumDict);
+            meanSumsToCatValues(meanSumDict);
+            DaedalusTrainingSet = OptoGlobals.setFromCollection(OptoGlobals.TrainingXNormed, OptoGlobals.TrainingXCats, OptoGlobals.TrainingXBools);
+
+            DaedalusValidationSet = OptoGlobals.setFromCollection(OptoGlobals.TestingXNormed, OptoGlobals.TestingXCats, OptoGlobals.TestingXBools);
+
+
+            OptoGlobals.TrainingXNormed = Util.ListArrayToListList(DaedalusTrainingSet);
+            OptoGlobals.TestingXNormed = Util.ListArrayToListList(DaedalusValidationSet);
+
+            ClassDict = new Dictionary<string, int>();
+            ClassList = new List<string>();
+            int tempCl = 0;
+
+            //ClassDict is a translator to convert string classes to integers.  ClassList is a list to do the same thing with integers.
+            //ClassList[ClassDict["className"]] is will yield "className", if it is in the dictionary.
+            //Datasets are loaded... what's next?  
+            tempCl = buildClassListAndDict(tempCl, TrainingYRaw);//If Training and Testing sets are configured correctly, the next line is pointless.
+            buildClassListAndDict(tempCl, TestingYRaw);
+
+
+            NumberOfClasses = ClassList.Count;
+
+            NumericalColumns = xCols.SetDifference(CategoricalColumns);
+            NumericalColumns = NumericalColumns.SetDifference(BooleanColumns);
+
+
+            testingYIntArray = intArrayFromStringList(TestingYRaw);
+            trainingYIntArray = intArrayFromStringList(TrainingYRaw);
+
+
+            DaedalusTrainingY = new List<int>(MyUtils.Util.Flatten2dArray(OptoGlobals.trainingYIntArray));
+            DaedalusValidationY = new List<int>(MyUtils.Util.Flatten2dArray(OptoGlobals.testingYIntArray));
+           
+
             AllPredictorNames = GetPredictorNames(xCols, trXPath);
             if (TrainingXRaw == null || TestingXRaw == null || TrainingYRaw == null || TestingYRaw == null)
             {
                 Console.WriteLine("Something went horribly wrong loading data, one or more of the datasets is null.  Could be a bad path.");
                 throw new InvalidCastException();
             }
-            int tempCl = 0;
-            ClassDict = new Dictionary<string, int>();
-            ClassList = new List<string>();
-            tempCl = buildClassListAndDict(tempCl, TrainingYRaw);//If Training and Testing sets are configured correctly, the next line is pointless.
-            buildClassListAndDict(tempCl, TestingYRaw);
-
-            testingYIntArray =  intArrayFromStringList(TestingYRaw);
-
-            trainingYIntArray = intArrayFromStringList(TrainingYRaw);
-
-            NumberOfClasses = ClassList.Count;
-
-            TrainingXNormed = NormalizeArray(TrainingXRaw, SqueezedMinMaxNorm, true);
-            TestingXNormed = NormalizeArray(TestingXRaw, SqueezedMinMaxNorm, false);
-            NumericalColumns = xCols.SetDifference(CategoricalColumns);
-            NumericalColumns = NumericalColumns.SetDifference(BooleanColumns);
-
-            //ClassDict is a translator to convert string classes to integers.  ClassList is a list to do the same thing with integers.
-            //ClassList[ClassDict["className"]] is will yield "className", if it is in the dictionary.
-            //Datasets are loaded... what's next?  
-        }
+            }
 
         internal delegate List<Double> NormFunction(List<Double> x, List<List<Double>> stats);
 
@@ -142,11 +163,11 @@ namespace EvoOptimization
             }
 
         
-        internal static List<List<double>> NormalizeArray(List<List<double>> inArray, NormFunction func, bool trainingSet = true)
+        internal static List<List<double>> NormalizeArray(List<List<double>> inArray, NormFunction func, bool DaedalusTrainingSet = true)
         {
             if (func == null) func = MinMaxNorm;
             List<List<Double>> ret = new List<List<double>>(inArray.Count);
-            if (trainingSet || Stats == null)///get the stats from the array, and use it for all resulting data (eg, get stats from training set and then apply it to testing set)
+            if (DaedalusTrainingSet || Stats == null)///get the stats from the array, and use it for all resulting data (eg, get stats from training set and then apply it to testing set)
             {
                 Stats = new List<List<double>>();
                 for (int i = 0; i < inArray[0].Count; ++i)
@@ -383,6 +404,68 @@ namespace EvoOptimization
         public static MLApp.MLApp executor = new MLApp.MLApp();
         private static Process ExecutorProcess;
         internal static int[,] testingYIntArray, trainingYIntArray;
+        public static Dictionary<String, Double> CategoryValues;
+        internal static List<double[]> setFromCollection(List<List<double>> set, List<List<String>> catSet, 
+            List<List<Boolean>> boolSet)
+        {
+            List<List<Double>> ret = new List<List<Double>>(set.Count);
+            
+            for (int i = 0; i < set.Count; ++i)
+            {
+                List<Double> x = set[i];
+                for (int j = 0; j < catSet[i].Count; ++j)
+                {
+                    x.Add(CategoryValues[catSet[i][j]]);//Append normed Cats and Bools to the end here and below
+                }
+                for (int j = 0; j < boolSet[i].Count; ++j)
+                {
+                    x.Add(boolSet[i][j] ? OptoGlobals.FalseDoubleVal : OptoGlobals.TrueDoubleVal);
+                }
+
+                ret.Add(x);
+            }
+            ret = OptoGlobals.NormalizeArray(ret, OptoGlobals.SqueezedMinMaxNorm, true);
+            List<Double[]> realRet = new List<Double[]>();
+            foreach (List<Double> r in ret)
+            {
+                realRet.Add(r.ToArray());
+            }
+            return realRet;
+
+        }
+
+        private static void meanSumsToCatValues(Dictionary<String, List<Double>> meanSumDict)
+        {
+
+            CategoryValues = new Dictionary<string, double>();
+            foreach (String key in meanSumDict.Keys)
+            {
+                CategoryValues.Add(key, meanSumDict[key][0] / meanSumDict[key][1]);//Now, we have means for every categorical
+            }
+        }
+
+        private static void gatherCategoricalMeans(List<List<double>> set, List<List<String>> catSet, Dictionary<String, List<Double>> meanSumDict)
+        {
+            for (int i = 0; i < set.Count; ++i)
+            {
+                List<Double> x = set[i];
+                for (int j = 0; j < catSet[i].Count; ++j)
+                {
+                    if (!meanSumDict.ContainsKey(catSet[i][j]))
+                    {
+                        double[] empty = { 0, 0 };
+                        meanSumDict.Add(catSet[i][j], new List<double>(empty));
+                    }
+                    List<Double> sc = meanSumDict[catSet[i][j]];
+                    foreach (double d in x)
+                    {
+                        sc[0] += d;
+                        sc[1] += 1;
+                    }
+                }
+            }//We have now calculated sums and counts for every categorical
+        }
+
 
         static OptoGlobals()
         {
@@ -589,5 +672,8 @@ namespace EvoOptimization
         public const double FalseDoubleVal = .25;
 
         public const double TrueDoubleVal = .75;
+        public static List<double[]> DaedalusTrainingSet, DaedalusValidationSet;
+        public static List<int> DaedalusTrainingY, DaedalusValidationY;
+
     }
 }

@@ -29,13 +29,14 @@
 \graduationMonth{May}           % month of graduation of your thesis/dissertation
 \majorProfessor{Bruce MacLennan}	    % advisor's name
 \keywords{List, Of, Keywords}	% keywords (optional) separated by commas - these are used in the PDF file properties
-\viceProvost{Someone Important} % vice provost name
+\viceProvost{Dixie L. Thompson} % vice provost name
 \major{Computer Science}	% major: Mechanical Engineering, Aerospace Engineering, Mathematics...
 \degree{Master of Science}	    % degree: Doctor of Philosophy, Master of Science, Master of Engineering...
 \college{Engineering}           % college
 \dept{Electrical Engineering and Computer Science}	% department
 \university{The University  of Tennessee, Knoxville}	% school name
 % THIS TEMPLATE ACCOMMODATES UP TO 5 COMMITTEE MEMBERS - ENTER ONLY THE NAMES OF THE MEMBERS ON YOUR COMMITTEE
+\renewcommand{\thefootnote}{\arabic{footnote}} %Autonumber footnotes
 \numberOfCommitteeMembers{3} % enter the number of committee members
 \committeeMemberA {Dr. Bruce MacLennan}	% name of first committee member
 \committeeMemberB {Dr. Hairong Qi}	% name of second committee member
@@ -44,7 +45,11 @@
 \committeeMemberE {Committee Member 5}  % rest of committee names
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % LOAD SOME USEFUL PACKAGES
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\usepackage{color}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\usepackage{amsmath}
 \usepackage{nomencl}                    % produces a nomenclature
 \usepackage{float}                      % figure floats
 \usepackage{natbib}                     % this package allows you to link your references
@@ -57,6 +62,40 @@
 \usepackage{booktabs}                   % professional looking tables
 \usepackage[config, labelfont={bf}]{caption,subfig} % nice sub figures
 \usepackage{mathrsfs}                   % additional math scripts
+\usepackage{listings}					% Code Listings
+\lstdefinelanguage{algorithm}{
+	morekeywords={for, while, to, downto, by, repeat-until, if, else},
+	otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+	sensitive=true,
+	morecomment=[l]{//},
+	morecomment=[n]{},
+	morestring=[b]",
+	morestring=[b]',
+	morestring=[b]"""
+	keywordstyle=\color{blue}\bfseries,  
+	escapeinside={`}{`}
+}
+\lstset{frame=tb,
+	language=algorithm,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\small\ttfamily},
+	numbers=left,
+	numberstyle=\tiny\color{gray},
+	keywordstyle=\color{blue}\bfseries,  
+	commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve},
+	frame=single,
+	breaklines=true,
+	breakatwhitespace=true
+	tabsize=3
+	extendedchars=false
+}
+
+\renewcommand{\thefigure}{Figure \arabic{chapter}.\arabic{figure}}
+
 %%% PACKAGES THAT ARE PRELOADED WITH THE CLASS ARE: amsmath,amsthm,amssymb,setspace,geometry,hyperref,and color
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
