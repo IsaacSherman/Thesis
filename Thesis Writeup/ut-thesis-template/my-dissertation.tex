@@ -20,6 +20,8 @@
 % for a dissertation, replace the thesis option by dissertation:
 % \documentclass[dissertation,letterpaper,12pt]{utthesis} . . .
 \renewcommand{\baselinestretch}{1.5} 	 % line Spacing
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TO DO: FILL IN YOUR INFORMATION BELOW - READ THIS SECTION CAREFULLY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,6 +52,7 @@
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{nomencl}                    % produces a nomenclature
 \usepackage{float}                      % figure floats
 \usepackage{natbib}                     % this package allows you to link your references
@@ -75,6 +78,21 @@
 	keywordstyle=\color{blue}\bfseries,  
 	escapeinside={`}{`}
 }
+
+\lstdefinelanguage{config}{
+	morekeywords={for, while, to, downto, by, repeat-until, if, else},
+	otherkeywords={=>,<-,<\%,<:,>:,@},
+	sensitive=true,
+	morecomment=[l]{\#},
+	morecomment=[n]{},
+	morestring=[b]",
+	morestring=[b]',
+	morestring=[b]"""
+	keywordstyle=\color{blue}\bfseries,  
+	escapeinside={`}{`}
+}
+
+
 \lstset{frame=tb,
 	language=algorithm,
 	aboveskip=3mm,
@@ -99,6 +117,18 @@
 %%% PACKAGES THAT ARE PRELOADED WITH THE CLASS ARE: amsmath,amsthm,amssymb,setspace,geometry,hyperref,and color
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
+
+\newcommand{\schemaFitness}[1]{f(#1)}
+\newcommand{\schemaRepresentation}[2]{r(#1, #2)}
+\newcommand{\averageFitness}{\overline{F_t}}
+\newcommand{\schemaDefiningLength}[1]{\delta(#1)}
+\newcommand{\schemaAsFunction}[1]{H(#1)}
+\newcommand{\crossoverRate}{p_c}
+\newcommand{\mutationRate}{p_m}
+\newcommand{\schemaOrder}[1]{o(#1)}
+\newcommand{\schemaSymbol}{H}
+\newcommand{\fitnessFunction}[1]{F(#1)}
+
     \pagenumbering{alph} % this is needed to clear certain issues with the hyperref package
     %
     \makeApprovalPage % make the approval page - this is the page that needs to be signed & returned to the thesis/dissertation consultant

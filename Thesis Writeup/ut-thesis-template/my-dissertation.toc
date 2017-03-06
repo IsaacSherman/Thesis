@@ -1,5 +1,5 @@
-\contentsline {chapter}{List of Tables}{ix}{section*.13}
-\contentsline {chapter}{List of Figures}{x}{section*.15}
+\contentsline {chapter}{List of Tables}{viii}{section*.13}
+\contentsline {chapter}{List of Figures}{ix}{section*.15}
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}
 \contentsline {paragraph}{Genetic Algorithms Introduction}{1}{section*.18}
 \contentsline {subparagraph}{Stopping Conditions}{2}{section*.19}
@@ -11,12 +11,21 @@
 \contentsline {subparagraph}{Swiss-Army Chainsaw}{7}{section*.26}
 \contentsline {subparagraph}{And Quick to Anger}{7}{section*.27}
 \contentsline {subparagraph}{Toolset}{8}{section*.28}
-\contentsline {paragraph}{Theoretic Underpinnings}{8}{section*.29}
-\contentsline {chapter}{\numberline {2}Derivation of the Navier-Stokes Equations}{9}{chapter.2}
-\contentsline {chapter}{\numberline {3}Computational Fluid Dynamics}{10}{chapter.3}
-\contentsline {chapter}{\numberline {4}Conclusions}{11}{chapter.4}
-\contentsline {chapter}{Bibliography}{12}{section*.30}
-\contentsline {chapter}{\numberline {A}Summary of Equations}{15}{appendix.A}
-\contentsline {section}{\numberline {A.1}Cartesian}{15}{section.A.1}
-\contentsline {section}{\numberline {A.2}Cylindrical}{15}{section.A.2}
-\contentsline {chapter}{Vita}{16}{section*.32}
+\contentsline {paragraph}{Theoretic Underpinnings}{9}{section*.29}
+\contentsline {paragraph}{Motivations}{12}{section*.30}
+\contentsline {subparagraph}{Priors}{13}{section*.31}
+\contentsline {paragraph}{Literature Review}{14}{section*.32}
+\contentsline {subparagraph}{Hybrid Approach}{14}{section*.33}
+\contentsline {subparagraph}{Purist}{15}{section*.34}
+\contentsline {chapter}{\numberline {2}Methods and Implementations}{18}{chapter.2}
+\contentsline {section}{\numberline {2.1}Overview}{18}{section.2.1}
+\contentsline {section}{\numberline {2.2}Preprocessing}{19}{section.2.2}
+\contentsline {section}{\numberline {2.3}Hybrid Approach}{23}{section.2.3}
+\contentsline {paragraph}{McNB}{23}{section*.36}
+\contentsline {chapter}{\numberline {3}Computational Fluid Dynamics}{25}{chapter.3}
+\contentsline {chapter}{\numberline {4}Conclusions}{26}{chapter.4}
+\contentsline {chapter}{Bibliography}{27}{section*.37}
+\contentsline {chapter}{\numberline {A}Summary of Equations}{33}{appendix.A}
+\contentsline {section}{\numberline {A.1}Cartesian}{33}{section.A.1}
+\contentsline {section}{\numberline {A.2}Cylindrical}{33}{section.A.2}
+\contentsline {chapter}{Vita}{34}{section*.39}
