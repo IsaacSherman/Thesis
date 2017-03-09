@@ -21,6 +21,7 @@
 % \documentclass[dissertation,letterpaper,12pt]{utthesis} . . .
 \renewcommand{\baselinestretch}{1.5} 	 % line Spacing
 
+%\includeonly{chapters/chapter-1}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TO DO: FILL IN YOUR INFORMATION BELOW - READ THIS SECTION CAREFULLY
@@ -164,9 +165,9 @@
     \addToTOC{List of Figures} % this will add the list of figures to the Table of Contents (TOC)
     \listoffigures % generate a list of figures
     %
-    \makenomenclature % OPTIONAL
+    %\makenomenclature % OPTIONAL
     \addToPDFBookmarks{0}{Nomenclature}{g} % OPTIONAL
-    \printnomenclature[1.25in] % OPTIONAL
+    %\printnomenclature[1.25in] % OPTIONAL
     %
     \newpage
     \pagenumbering{arabic}
@@ -174,7 +175,7 @@
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % INCLUDE THE CHAPTERS STARTING WITH THE NOMENCLATURE IF PRESENT
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    \include{front-matter/nomenclature} % OPTIONAL
+    %\include{front-matter/nomenclature} % OPTIONAL
     \include{chapters/chapter-1}
     \include{chapters/chapter-2}
     \include{chapters/chapter-3}

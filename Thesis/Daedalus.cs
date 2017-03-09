@@ -82,7 +82,11 @@ namespace MyCellNet
             {
                 advanceGeneration();
                 Console.WriteLine("Starting Generation " + generation);
-                if (generation % RecordInterval == 0) dumpData();
+                if (generation % RecordInterval == 0)
+                {
+                    dumpData();
+                }
+
 
             }
             dumpData();
@@ -94,6 +98,15 @@ namespace MyCellNet
 
             evaluatePopulation();
             
+            if (generation % RecordInterval == 0)
+            {
+                for (int i = 0; i < PopSize; ++i)
+                {
+                    population[i].EvaluateSet(OptoGlobals.DaedalusValidationSet, OptoGlobals.DaedalusValidationY, true);
+                }
+               
+            }
+
             population.Sort();
             population.Reverse();
             gatherStats();
@@ -133,7 +146,7 @@ namespace MyCellNet
             if (_previousBestFitness > population[0].Fitness)
             {
                 string _currentBestString = population[0].Serialize();
-                System.Diagnostics.Debugger.Break();
+                //System.Diagnostics.Debugger.Break();
             }
             _previousBestString = population[0].Serialize();
 
@@ -201,7 +214,7 @@ namespace MyCellNet
                     best.EvaluateSet(OptoGlobals.DaedalusTrainingSet, OptoGlobals.DaedalusTrainingY, false);
                     cm = best.ConfusionMatrix;
                 }
-
+                fout.WriteLine("Training Confusion Matrix");
                 for (int i = 0; i < OptoGlobals.NumberOfClasses; ++i)
                 {
                     x.Append(OptoGlobals.ClassList[i] + ",");
@@ -215,6 +228,26 @@ namespace MyCellNet
                     fout.WriteLine(x.ToString());
                     x = new StringBuilder();
                 }
+                cm = best.ValidationMatrix;
+                if (cm == null)
+                {
+                    best.EvaluateSet(OptoGlobals.DaedalusValidationSet, OptoGlobals.DaedalusValidationY, true);
+                    cm = best.ValidationMatrix;
+                }
+                for (int i = 0; i < OptoGlobals.NumberOfClasses; ++i)
+                {
+                    x.Append(OptoGlobals.ClassList[i] + ",");
+                    for (int j = 0; j < OptoGlobals.NumberOfClasses; ++j)
+                    {
+                        x.Append(cm[i, j]);
+                        x.Append(",");
+
+                    }
+                    x.DeleteLastChar();
+                    fout.WriteLine(x.ToString());
+                    x = new StringBuilder();
+                }
+
 
             }
 
