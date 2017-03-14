@@ -25,8 +25,8 @@ namespace EvoOptimization
 
                 OptoGlobals.IsDebugMode = false;
             // Create the MATLAB instance 
-            String GlobalPath = "../../../Data/Bach/DataSetConfig.csv";
-            int maxGen = 100, saveAfterGens = 25, popSize = 50, baseCompUB = 10, maxComp = 100;
+            String GlobalPath = "../../../Data/Cardio/DataSetConfigNSP.csv";
+            int maxGen = 100, saveAfterGens = 25, popSize = 50, baseCompUB = 10, maxComp = 2000;
 
             if (args.Length >= 2) { GlobalPath = args[1]; }
             for (int i = 2; i < args.Length; ++i)
@@ -66,6 +66,7 @@ namespace EvoOptimization
             object pootwrap = poot;
             Hunter x = new Hunter();
             double nerp;
+            Daedalus D = new Daedalus();
             //x.Vote(pootwrap, out nerp);
             CTreeOptimizer.CTreeOptimizer.RewriteBitLengths();
             EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer> decisionTreeProgram = new EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer>();
@@ -81,7 +82,7 @@ namespace EvoOptimization
 
       
             //Configure the program here- set things like multi-threading, etc, if desired
-            Daedalus D = new Daedalus();
+            
             D.MaxGen = maxGen * 10;
             D.RecordInterval = saveAfterGens;
             D.PopSize = popSize * 10;
