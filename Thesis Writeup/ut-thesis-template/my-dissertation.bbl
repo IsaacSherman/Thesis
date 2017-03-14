@@ -75,6 +75,11 @@ Hoque, M.~S., Mukit, M.~A., and Bikas, M. A.~N. (2012).
   4(2):109--120.
 \newblock arXiv: 1204.1336.
 
+\bibitem[Hyafil and Rivest, 1976]{hyafil_constructing_1976}
+Hyafil, L. and Rivest, R.~L. (1976).
+\newblock Constructing optimal binary decision trees is {NP}-complete.
+\newblock {\em Information processing letters}, 5(1):15--17.
+
 \bibitem[{J. P. Marques de SÃ¡} et~al., 2010]{j._p._marques_de_sa_uci_2010}
 {J. P. Marques de SÃ¡}, {J. Bernardes}, and {D. Ayres de Campos} (2010).
 \newblock {UCI} {Machine} {Learning} {Repository}: {Cardiotocography} {Data}
@@ -162,6 +167,11 @@ Srikanth, R., George, R., Warsi, N., Prabhu, D., Petry, F.~E., and Buckles,
   classification.
 \newblock {\em Pattern Recognition Letters}, 16(8):789--800.
 
+\bibitem[{Stefanie Scheid}, 2004]{stefanie_scheid_introduction_2004}
+{Stefanie Scheid} (2004).
+\newblock Introduction to {Kernel} {Smoothing} {\textbar} {Kernel} ({Operating}
+  {System}) {\textbar} {Probability} {Density} {Function}.
+
 \bibitem[Tseng et~al., 2008]{tseng_genetic_2008}
 Tseng, M.-H., Chen, S.-J., Hwang, G.-H., and Shen, M.-Y. (2008).
 \newblock A genetic algorithm rule-based approach for land-cover
@@ -180,6 +190,11 @@ Wu, J., Long, J., and Liu, M. (2015).
 \newblock Evolving {RBF} neural networks for rainfall prediction using hybrid
   particle swarm optimization and genetic algorithm.
 \newblock {\em Neurocomputing}, 148:136--142.
+
+\bibitem[Zhang, 2003]{zhang_evolution_2003}
+Zhang, J. (2003).
+\newblock Evolution by gene duplication: an update.
+\newblock {\em Trends in Ecology \& Evolution}, 18(6):292--298.
 
 \bibitem[Zhang et~al., 2015]{zhang_visual_2015}
 Zhang, Z., McDonnell, K.~T., Zadok, E., and Mueller, K. (2015).

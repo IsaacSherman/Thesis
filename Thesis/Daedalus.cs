@@ -234,6 +234,12 @@ namespace MyCellNet
                     best.EvaluateSet(OptoGlobals.DaedalusValidationSet, OptoGlobals.DaedalusValidationY, true);
                     cm = best.ValidationMatrix;
                 }
+                fout.WriteLine("Validation Confusion Matrix");
+                x.Append("Predicted/Actual,");
+                for (int i = 0; i < OptoGlobals.NumberOfClasses; ++i)
+                {
+                    x.Append(OptoGlobals.ClassList[i] + ",");
+                }
                 for (int i = 0; i < OptoGlobals.NumberOfClasses; ++i)
                 {
                     x.Append(OptoGlobals.ClassList[i] + ",");

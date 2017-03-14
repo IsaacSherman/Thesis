@@ -377,7 +377,7 @@ namespace MyCellNet
             ret[1] = new Cell();
             for (int i = 0; i < CellLength; ++i)//it makes sense at this level to use ordered iteration
             {
-                // if (a.OptoGlobals.RNG.NextDouble() <= EvoGlobals.CrossOverChance) switchTargets(a, b, ref target, ref notTarget);
+                if (OptoGlobals.RNG.NextDouble() <= OptoGlobals.CrossoverChance) switchTargets(a, b, ref target, ref notTarget);
                 ret[0]._bits[i] = target._bits[i];
                 ret[1]._bits[i] = notTarget._bits[i];
             }

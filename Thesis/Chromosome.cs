@@ -441,9 +441,15 @@ namespace MyCellNet
                 case OptoGlobals.CrossoverModes.Uniform:
                     for (int i = 0; i < least; ++i)
                     {
+                        
                         if (OptoGlobals.RNG.NextDouble() < OptoGlobals.CrossoverChance) Util.switchTargets(ret[0], ret[1], ref target, ref notTarget);
-                        target.JoinCell(a[i]);
-                        notTarget.JoinCell(b[i]);
+                        //target.JoinCell(a[i]);
+                        //notTarget.JoinCell(b[i]);
+                        Cell[] offspring = Cell.Crossover(a[i], b[i]);
+                        target.JoinCell(offspring[0]);
+                        notTarget.JoinCell(offspring[1]);
+
+                        
                         aCrossed.Add(i);
                         bCrossed.Add(i);
                     }

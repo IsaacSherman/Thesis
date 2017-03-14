@@ -26,7 +26,7 @@ namespace EvoOptimization
                 OptoGlobals.IsDebugMode = false;
             // Create the MATLAB instance 
             String GlobalPath = "../../../Data/Bach/DataSetConfig.csv";
-            int maxGen = 100, saveAfterGens = 25, popSize = 50, baseCompUB = 10, maxComp = 100;
+            int maxGen = 100, saveAfterGens = 25, popSize = 50, baseCompUB = 10, maxComp = 2000;
 
             if (args.Length >= 2) { GlobalPath = args[1]; }
             for (int i = 2; i < args.Length; ++i)

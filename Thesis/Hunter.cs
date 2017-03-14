@@ -313,7 +313,8 @@ namespace MyCellNet
             List<int> aCrossed = new List<int>(a.myChromosomes.Count), bCrossed = new List<int>(b.myChromosomes.Count);
             List<int> mostCrossed;
             int max = Math.Min(a.myChromosomes.Count, b.myChromosomes.Count), point1 = OptoGlobals.RNG.Next(0, max), point2 = OptoGlobals.RNG.Next(point1, max);
-            #region CrossoverModeBlock
+            Hunter maxHunter = a.myChromosomes.Count == max?b:a;
+                #region CrossoverModeBlock
             switch (OptoGlobals.CrossoverMode)
             {
                 case OptoGlobals.CrossoverModes.Uniform:
@@ -322,13 +323,20 @@ namespace MyCellNet
                         //Trying a form of uniform crossover, 2 point
                         //just swapping chromosomes, not crossing over at that level
                         temp = Chromosome.CrossOver(a[i].deepCopy(), b[i].deepCopy());
-                        target.AddChromosome(a[i]);
-                        notTarget.AddChromosome(b[i]);
+                       
+                        target.AddChromosome(temp[0]);
+                        notTarget.AddChromosome(temp[1]);
                         aCrossed.Add(i);
                         bCrossed.Add(i);
                         if (OptoGlobals.RNG.NextDouble() <= OptoGlobals.CrossoverChance) switchTargets(ret[0], ret[1], ref target, ref notTarget);
                     }
-                    break;
+                    for (int i = max; i < maxHunter.myChromosomes.Count; ++i )
+                    {
+                        target.AddChromosome(maxHunter[i]);
+                        if (OptoGlobals.RNG.NextDouble() <= OptoGlobals.CrossoverChance) switchTargets(ret[0], ret[1], ref target, ref notTarget);
+                        
+                    }
+                        break;
                 case OptoGlobals.CrossoverModes.TwoPointHunter:
                     for (int i = 0; i < max; ++i)
                     {
