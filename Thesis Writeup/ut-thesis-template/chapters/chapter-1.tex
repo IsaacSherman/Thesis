@@ -9,7 +9,7 @@ Imagine a colony of rabbits.  The rabbits are quite content to munch on clovers 
 \begin{lstlisting}[language = algorithm]
 Population := RandomInitialization()
 	while True:
-		For each Solution in Population:
+		for each Solution in Population:
 			Evaluate Solution
 			Assign Fitness to Solution
 		newPopulation = SurviveAndBreed(Population)
@@ -79,7 +79,7 @@ Other forms of crossover are possible, though they are not as widely represented
 \subparagraph{Mutation}
 Mutation is fairly straightforward.  Usually after crossover and before insertion in the next generation, that is, only affecting the offspring of breeding and not elitism, each bit in the bitstring has a chance to change.  The algorithm is perhaps the most instructive: \begin{lstlisting}
 for (Solution s in Crossover(A,B)):
-	For bit in s.Bits:
+	for each bit in s.Bits:
 		if(MutationChance > Random(0,1)) bit = !bit
 	end for
 end for
