@@ -66,6 +66,7 @@ namespace EvoOptimization
             object pootwrap = poot;
             Hunter x = new Hunter();
             double nerp;
+            Daedalus D = new Daedalus();
             //x.Vote(pootwrap, out nerp);
             CTreeOptimizer.CTreeOptimizer.RewriteBitLengths();
             EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer> decisionTreeProgram = new EvoOptimizerProgram<CTreeOptimizer.CTreeOptimizer>();
@@ -81,7 +82,7 @@ namespace EvoOptimization
 
       
             //Configure the program here- set things like multi-threading, etc, if desired
-            Daedalus D = new Daedalus();
+            
             D.MaxGen = maxGen * 10;
             D.RecordInterval = saveAfterGens;
             D.PopSize = popSize * 10;
