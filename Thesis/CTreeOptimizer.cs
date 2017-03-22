@@ -137,7 +137,10 @@ namespace EvoOptimization.CTreeOptimizer
                     classAccuracy = new List<double>(classAcc);
 
                 }
-
+                else
+                {
+                    GeneratedLabels = new List<int>();
+                }
             }               
             _confuMat = new ConfusionMatrix((int)label[1, 1], (int)label[0, 0], (int)label[0, 1], (int)label[1, 0]);
             setFitness();

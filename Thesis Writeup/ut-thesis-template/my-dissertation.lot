@@ -1,5 +1,17 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Interpretation of Affinity Bits\relax }}{40}{table.caption.46}
+\contentsline {table}{\numberline {2.2}{\ignorespaces Merger Outcomes\relax }}{40}{table.caption.47}
 \addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Yeast: Classification Tree without Feature Selection Confusion Matrix}}{50}{table.caption.58}
+\contentsline {table}{\numberline {3.2}{\ignorespaces Yeast:Classification Tree with Feature Selection Confusion Matrix}}{50}{table.caption.60}
+\contentsline {table}{\numberline {3.3}{\ignorespaces Yeast:Multiclass Na\"ive Bayes without Feature Selection Confusion Matrix}}{51}{table.caption.62}
+\contentsline {table}{\numberline {3.4}{\ignorespaces Yeast: Multiclass Na\"ive Bayes with Feature Selection Confusion Matrix}}{51}{table.caption.63}
+\contentsline {table}{\numberline {3.5}{\ignorespaces Yeast: Multiclass Na\"ive Bayes with Feature Selection Confusion Matrix}}{52}{table.caption.65}
+\contentsline {table}{\numberline {3.6}{\ignorespaces CardioNSP: Classification Tree without Feature Selection Confusion Matrix}}{53}{table.caption.68}
+\contentsline {table}{\numberline {3.7}{\ignorespaces CardioNSP: Classification Tree with Feature Selection Confusion Matrix}}{53}{table.caption.70}
+\contentsline {table}{\numberline {3.8}{\ignorespaces CardioNSP: Multiclass Na\"ive Bayes without Feature Selection Confusion Matrix}}{53}{table.caption.72}
+\contentsline {table}{\numberline {3.9}{\ignorespaces CardioNSP: Multiclass Na\"ive Bayes with Feature Selection Confusion Matrix}}{53}{table.caption.74}
+\contentsline {table}{\numberline {3.10}{\ignorespaces CardioNSP: Hunter Confusion Matrix}}{54}{table.caption.76}
 \addvspace {10\p@ }
 \addvspace {10\p@ }

@@ -1,5 +1,5 @@
 #Dataset Name
-CardioData
+CardioDataNSP
 #Class Names File
 ../../../Data/Cardio/classNamesNSP.txt
 #TrainingSet X Path
@@ -11,6 +11,10 @@ CardioData
 #TestingSet  Y Path
 ../../../Data/Cardio/testingXY.csv
 #X ignore list, comma separated and starting with w if it's a whitelist (otherwise, blacklist)
-b, 29, 30
+b, 30, 31
 #Y ignore list, as above
-w, 30
+w, 31
+#Categorical Variables, white/blacklist, comma separated
+w, 
+#Boolean Variables, as above
+w, 

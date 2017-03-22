@@ -23,7 +23,7 @@ namespace EvoOptimization
         static bool xBlacklist, yBlacklist;
         internal static void ConfigureForDataset(string globalPath)
         {
-            bool catBlackList = false;
+            bool catBlackList = false, boolBlackList = false;
             Console.WriteLine(Path.GetFullPath(globalPath));
             globalPath = Path.GetFullPath(globalPath);
             using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(globalPath, FileMode.Open))))
@@ -40,7 +40,7 @@ namespace EvoOptimization
                 GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref xIgnore, ref xBlacklist);
                 GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref yIgnore, ref yBlacklist);
                 GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref CategoricalColumns, ref catBlackList);
-                GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref BooleanColumns, ref catBlackList);
+                GenerateIgnoreList(GetNextNonCommentedLine(fin).Trim(), ref BooleanColumns, ref boolBlackList);
 
                 //TODO:
                 //What needs to be in the file?
@@ -65,19 +65,30 @@ namespace EvoOptimization
 
 
             }
-            Object[] tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, trXPath, true, false) as Object[];
+            int len;
+            using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(trXPath, FileMode.Open))))
+            {
+                char[] tokens = { ',' };
+                string firstLine = fin.ReadLine();
+                string[] headers = firstLine.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
+                len = headers.Length;
+            }
+
+            getColumnList(catBlackList, CategoricalColumns, out CategoricalColumns, len);
+            getColumnList(boolBlackList, BooleanColumns, out BooleanColumns, len);
+            Object[] tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, trXPath, catBlackList, boolBlackList, true, false) as Object[];
             TrainingXRaw = tempX[0] as List<List<Double>>;
             TrainingXBools = tempX[1] as List<List<Boolean>>;
             TrainingXCats = tempX[2] as List<List<String>>;
             NumberOfFeatures = xCols.Count;
-            TrainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, false, false) as List<List<String>>;
+            TrainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, catBlackList, boolBlackList, false, false) as List<List<String>>;
             TrainingYString = Util.TwoDimListToSmoothArray(TrainingYRaw);
-            tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, trXPath, true, true) as Object[];
+            tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, trXPath, catBlackList, boolBlackList, true, true) as Object[];
             TestingXRaw = tempX[0] as List<List<Double>>;
             TestingXBools = tempX[1] as List<List<Boolean>>;
             TestingXCats = tempX[2] as List<List<String>>;
-            
-            TestingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, false, true) as List<List<String>>;
+
+            TestingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, catBlackList, boolBlackList, false, true) as List<List<String>>;
             TestingYString = Util.TwoDimListToSmoothArray(TestingYRaw);
 
 
@@ -137,7 +148,8 @@ namespace EvoOptimization
             List<Double> ret = new List<double>(x.Count);
             for (int i = 0; i < x.Count; ++i)
             {
-                ret.Add(bottom + (top-bottom)*((x[i] - stats[i][Mins]) / (stats[i][Maxes] - stats[i][Mins])));
+                double temp = (bottom + (top-bottom)*((x[i] - stats[i][Mins]) / (stats[i][Maxes] - stats[i][Mins])));
+                ret.Add(double.IsNaN(temp) ? bottom : temp);
             }
             return ret;
         }
@@ -230,7 +242,7 @@ namespace EvoOptimization
         /// <param name="isXDataset">If an X dataset, will parse data to doubles before returning.  Otherwise, will return as strings</param>
         /// <param name="ignoreFirstLine"></param>
         /// <returns>boxed 2d list, either strings or doubles</returns>
-        private static Object readInDataset(ref HashSet<int> cols, ref HashSet<int> ignoreList, bool blackList, ref HashSet<int> BoolCols, HashSet<int> CatCols, string filePath, bool isXDataset, bool ignoreFirstLine)
+        private static Object readInDataset(ref HashSet<int> cols, ref HashSet<int> ignoreList, bool blackList, ref HashSet<int> BoolCols, HashSet<int> CatCols, string filePath, bool catBlacklist, bool boolBlacklist, bool isXDataset, bool ignoreFirstLine)
         {
             using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(filePath, FileMode.Open))))
             {
@@ -240,6 +252,7 @@ namespace EvoOptimization
                 {
                     string[] headers = firstLine.Split(tokens, StringSplitOptions.RemoveEmptyEntries);
                     getColumnList(blackList, ignoreList, out cols, headers.Length);
+
 
                 }
                 if (isXDataset)
@@ -440,7 +453,9 @@ namespace EvoOptimization
             CategoryValues = new Dictionary<string, double>();
             foreach (String key in meanSumDict.Keys)
             {
-                CategoryValues.Add(key, meanSumDict[key][0] / meanSumDict[key][1]);//Now, we have means for every categorical
+                double val = meanSumDict[key][0] / meanSumDict[key][1];
+                if (double.IsNaN(val)) val = OptoGlobals.RNG.NextDouble()*.8+.1;
+                CategoryValues.Add(key, val);//Now, we have means for every categorical
             }
         }
 

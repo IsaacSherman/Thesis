@@ -300,7 +300,7 @@ namespace MyCellNet
         private void evaluatePopulation()
         {
             List<Thread> threadPool = new List<Thread>(PopSize);
-
+            Console.WriteLine("Evaluating Hunters...");
             foreach (Hunter x in population)
             {
                 x.ErrorCheck();
@@ -308,10 +308,17 @@ namespace MyCellNet
             }
             foreach (Thread t in threadPool)
             {
-                t.Start();
-            }
-            while (threadPool.Any(t => t.IsAlive)) Thread.Sleep(500);
 
+                    t.Start();
+            }
+            while (threadPool.Any(t => t.IsAlive))
+            {
+                Thread.Sleep(500);
+                for (int i = threadPool.Count - 1; i > 0; --i)
+                {
+                    if (!threadPool[i].IsAlive) threadPool.RemoveAt(i);
+                }
+            }
 
             foreach (Hunter x in population)
             {

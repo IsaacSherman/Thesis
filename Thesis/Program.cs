@@ -25,7 +25,7 @@ namespace EvoOptimization
 
                 OptoGlobals.IsDebugMode = false;
             // Create the MATLAB instance 
-            String GlobalPath = "../../../Data/Bach/DataSetConfig.csv";
+            String GlobalPath = "../../../Data/Cardio/DataSetConfigNSP.csv";
             int maxGen = 100, saveAfterGens = 25, popSize = 50, baseCompUB = 10, maxComp = 2000;
 
             if (args.Length >= 2) { GlobalPath = args[1]; }
@@ -89,11 +89,12 @@ namespace EvoOptimization
             D.MaxCellComplexity = maxComp;
             D.ConfigureCellDelegatesForDatabase();
 
-
-            D.Run();
-
-            decisionTreeProgram.ConfigureAndRun();
+            //System.Threading.Thread t = new System.Threading.Thread(() => D.Run());
+            //t.Start();
             naiveBayesProgram.ConfigureAndRun();
+            
+            decisionTreeProgram.ConfigureAndRun();
+            //D.Run();
 
 
 

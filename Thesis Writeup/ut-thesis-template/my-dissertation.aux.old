@@ -1,0 +1,66 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\@input{front-matter/dedication.aux}
+\@input{front-matter/acknowledgements.aux}
+\@input{front-matter/quote.aux}
+\@input{front-matter/abstract.aux}
+\@writefile{toc}{\contentsline {chapter}{List of Tables}{viii}{section*.13}}
+\@writefile{toc}{\contentsline {chapter}{List of Figures}{ix}{section*.15}}
+\@input{chapters/chapter-1.aux}
+\@input{chapters/chapter-2.aux}
+\@input{chapters/chapter-3.aux}
+\@input{chapters/chapter-4.aux}
+\bibstyle{apalike}
+\bibdata{references/references-dissertation}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{37}{section*.44}}
+\bibcite{cedar_cedar_2002}{{1}{2002}{{ced}}{{}}}
+\bibcite{affenzeller_self-adaptive_2003}{{2}{2003}{{Affenzeller and Wagner}}{{}}}
+\bibcite{alexandre_hybridizing_2015}{{3}{2015}{{Alexandre et~al.}}{{}}}
+\bibcite{back_selective_1994}{{4}{1994}{{Back}}{{}}}
+\bibcite{chou_optimizing_2014}{{5}{2014}{{Chou et~al.}}{{}}}
+\bibcite{daniele_p._radicioni_uci_2014}{{6}{2014}{{{Daniele P. Radicioni} and {Roberto Esposito}}}{{}}}
+\bibcite{dehuri_application_2008}{{7}{2008}{{Dehuri et~al.}}{{}}}
+\bibcite{devos_simultaneous_2014}{{8}{2014}{{Devos et~al.}}{{}}}
+\bibcite{duan_characterization_2014}{{9}{2014}{{Duan et~al.}}{{}}}
+\bibcite{fidelis_discovering_2000}{{10}{2000}{{Fidelis et~al.}}{{}}}
+\bibcite{hoque_implementation_2012}{{11}{2012}{{Hoque et~al.}}{{}}}
+\bibcite{hyafil_constructing_1976}{{12}{1976}{{Hyafil and Rivest}}{{}}}
+\bibcite{j._p._marques_de_sa_uci_2010}{{13}{2010}{{{J. P. Marques de SÃ¡} et~al.}}{{}}}
+\bibcite{kharma_project_2004}{{14}{2004}{{Kharma et~al.}}{{}}}
+\bibcite{kowaliw_cellnet_2004}{{15}{2004}{{Kowaliw et~al.}}{{}}}
+\bibcite{kozeny_genetic_2015}{{16}{2015}{{Kozeny}}{{}}}
+\bibcite{li_application_2012}{{17}{2012}{{Li et~al.}}{{}}}
+\bibcite{lichman_uci_2013}{{18}{2013}{{Lichman}}{{}}}
+\bibcite{marchetti_improving_2013}{{19}{2013}{{Marchetti et~al.}}{{}}}
+\bibcite{ocak_medical_2013}{{20}{2013}{{Ocak}}{{}}}
+\bibcite{paul_horton_uci_1996}{{21}{1996}{{Paul Horton}}{{}}}
+\bibcite{ruiz_biased_2015}{{22}{2015}{{Ruiz et~al.}}{{}}}
+\bibcite{salari_novel_2014}{{23}{2014}{{Salari et~al.}}{{}}}
+\bibcite{schuman_spatiotemporal_2014}{{24}{2014}{{Schuman et~al.}}{{}}}
+\bibcite{srikanth_variable-length_1995}{{25}{1995}{{Srikanth et~al.}}{{}}}
+\bibcite{stefanie_scheid_introduction_????}{{Stefanie Scheid}{}{{}}{{}}}
+\bibcite{tseng_genetic_2008}{{27}{2008}{{Tseng et~al.}}{{}}}
+\bibcite{uysal_text_2014}{{28}{2014}{{Uysal and Gunal}}{{}}}
+\bibcite{wu_evolving_2015}{{29}{2015}{{Wu et~al.}}{{}}}
+\bibcite{zhang_evolution_2003}{{30}{2003}{{Zhang}}{{}}}
+\bibcite{zhang_visual_2015}{{31}{2015}{{Zhang et~al.}}{{}}}
+\@input{back-matter/appendix-1.aux}
+\@input{back-matter/vita.aux}
+\@writefile{toc}{\contentsline {chapter}{Vita}{44}{section*.46}}
+\providecommand\NAT@force@numbers{}\NAT@force@numbers

@@ -6,7 +6,7 @@ A Genetic Algorithm (GA) is a biologically inspired form of computing.  GAs can 
 \paragraph{Genetic Algorithms Introduction}
 Imagine a colony of rabbits.  The rabbits are quite content to munch on clovers and thistles and the like.  Some rabbits are much more content than others, and have significant girth.  One day foxes find the rabbits. There are many more rabbits than foxes, and the foxes can't eat all of them.  The heaviest rabbits are both the slowest and the most appetizing to the foxes, and they are the first to go, but many die.  They have failed the evolutionary filtering process.  However, the rabbits that survive are thinner, and the most successful are likely faster.  These are the rabbits which survive to populate the next generation.
 \\GAs encapsulate this process, though usually with much less mayhem.  The algorithm is as follows:
-\begin{lstlisting}[language = algorithm]
+\begin{lstlisting}[language = algorithm, caption={Basic GA}, label={fig:basicga}]
 Population := RandomInitialization()
 	while True:
 		for each Solution in Population:
@@ -46,25 +46,29 @@ There is some discussion that suggests that proportional selection provides the 
 	
 \end{figure}
 \\
-With a breeding population in place, we can begin the breeding process.  This is typically accomplished via an operation called crossover, which I will explain below.  \\\begin{tabular}{c|c|c|c|c|c|c|c|}
+With a breeding population in place, we can begin the breeding process.  This is typically accomplished via an operation called crossover, which I will explain below.  \\
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+	\hline
 	\textit{A} & \textit{1001} & \textit{10} & \textit{0011} & \textit{11} & \textit{1001} & \textit{00} & \textit{0111}\\ 
-\textbf{B} & \textbf{0011} & \textbf{01} & \textbf{1000} & \textbf{01} & \textbf{0001} & \textbf{10} & \textbf{1001}\\
-	
+	\textbf{B} & \textbf{0011} & \textbf{01} & \textbf{1000} & \textbf{01} & \textbf{0001} & \textbf{10} & \textbf{1001}\\
+	\hline
 \end{tabular}\\
 We begin with two solutions.  Crossover takes and returns 2 bitstrings.    It also has several subtypes, which I will illustrate in sequence.  First is one-point crossover.  This means that before crossing, a crossover point is chosen and offspring are produced as a copy, and when this point is reached, the offspring cross over and begin taking material from the other parent.  \\
 
-\begin{tabular}{c|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+	\hline
 	\textit{A'} & \textit{1001} & \textit{1}\textbf{1} & \textbf{1000} & \textbf{01} & \textbf{0001} & \textbf{10} & \textbf{1001}\\ 
 	\textbf{B'} & \textbf{0011} & \textbf{0}\textit{0} & \textit{0011} & \textit{11} & \textit{1001} & \textit{00} & \textit{0111}\\
-	
+	\hline
 \end{tabular}\\
 
 Two point crossover is similar to one point, except that crossing happens twice.\\
 
-\begin{tabular}{c|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+	\hline
 	\textit{A'} & \textit{1001} & \textit{10} & \textit{00}\textbf{00}  & \textbf{01} & \textbf{0001} & \textbf{10} & \textbf{1}\textit{111}\\ 
 	\textbf{B'} & \textbf{0011} & \textbf{01} & \textbf{10}\textit{11} & \textit{11} & \textit{1001} & \textit{00} & \textit{0}\textbf{001}\\
-	
+	\hline
 \end{tabular}\\
 
 Notice that here the final digit of A' and the second digit of B' becomes invalid (1111 is not between 0000 and 1001)- this is not controlled for in Crossover, but rather handled later by evaluating the offspring.
@@ -77,7 +81,7 @@ One other form of crossover we will deal with is one that counters this potentia
 Other forms of crossover are possible, though they are not as widely represented in the literature.  One is a modified uniform crossover that checks to cross only  at each "word", that is at each column representing a digit or operator in our example.  This gives the designer some control over how much contiguous information is exchanged per crossover.  Other variations with three or more parents, or even random asexual reproduction are possible.  Logical operations are viable, though again care must be taken to not increase homogeneity overmuch. \\
 
 \subparagraph{Mutation}
-Mutation is fairly straightforward.  Usually after crossover and before insertion in the next generation, that is, only affecting the offspring of breeding and not elitism, each bit in the bitstring has a chance to change.  The algorithm is perhaps the most instructive: \begin{lstlisting}
+Mutation is fairly straightforward.  Usually after crossover and before insertion in the next generation, that is, only affecting the offspring of breeding and not elitism, each bit in the bitstring has a chance to change.  The algorithm is perhaps the most instructive: \begin{lstlisting}[language=algorithm, caption={Mutation}, label={fig:mutation}]
 for (Solution s in Crossover(A,B)):
 	for each bit in s.Bits:
 		if(MutationChance > Random(0,1)) bit = !bit

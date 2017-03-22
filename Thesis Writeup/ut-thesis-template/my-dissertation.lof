@@ -1,7 +1,20 @@
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {Figure 1.1}{\ignorespaces Roullete Uniform Selection}}{5}{figure.caption.23}
+\contentsline {lstlisting}{\numberline {1.1}Basic GA}{2}{lstlisting.1.1}
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Roullete Uniform Selection}}{5}{figure.caption.23}
+\contentsline {lstlisting}{\numberline {1.3}Mutation}{7}{lstlisting.1.3}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {Figure 2.1}{\ignorespaces Overall Program Flow}}{19}{figure.caption.35}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Overall Program Flow}}{19}{figure.caption.35}
+\contentsline {lstlisting}{\numberline {2.2}Cardio Config File}{20}{lstlisting.2.2}
+\contentsline {lstlisting}{\numberline {2.3}Evolver Algorithm}{30}{lstlisting.2.3}
+\contentsline {lstlisting}{\numberline {2.4}Purist Voting Algorithms}{35}{lstlisting.2.4}
+\contentsline {lstlisting}{\numberline {2.5}Hunter Crossover}{37}{lstlisting.2.5}
+\contentsline {lstlisting}{\numberline {2.6}Chromosome Crossover}{38}{lstlisting.2.6}
+\contentsline {lstlisting}{\numberline {2.7}Daedalus Generate Next Generation}{42}{lstlisting.2.7}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces T-SNE visualization of Yeast dataset}}{47}{figure.caption.51}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces T-SNE visualization of Cardio dataset, NSP}}{48}{figure.caption.53}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces T-SNE visualization of Cardio dataset, morphology}}{48}{figure.caption.54}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces T-SNE visualization of Bach dataset}}{49}{figure.caption.56}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\addvspace {10\p@ }
+\contentsline {lstlisting}{\numberline {A.1}Best Hunter, Yeast}{67}{lstlisting.A.1}

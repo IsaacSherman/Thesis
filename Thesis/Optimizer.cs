@@ -116,8 +116,8 @@ namespace EvoOptimization
             {
                 _bits[i] = false;
             }
-            myTeX = OptoGlobals.TestingXRaw;
-            myTrX = OptoGlobals.TrainingXRaw;
+            myTeX = OptoGlobals.TrainingXNormed;
+            myTrX = OptoGlobals.TestingXNormed;
 
         }
         protected ConfusionMatrix _confuMat;
@@ -302,8 +302,8 @@ protected static List<int> extractNumericLabels(String blockString)
                 }
                 else
                 {
-                    myTeX = new List<List<double>>(OptoGlobals.TestingXRaw);
-                    myTrX = new List<List<double>>(OptoGlobals.TrainingXRaw);
+                    myTeX = new List<List<double>>(OptoGlobals.TestingXNormed);
+                    myTrX = new List<List<double>>(OptoGlobals.TrainingXNormed);
                     myBaseLabels = OptoGlobals.AllPredictorNames.ToArray();
                 }
                 return;
@@ -451,6 +451,8 @@ protected static List<int> extractNumericLabels(String blockString)
 
 
             }
+            OptoGlobals.TrainingXRaw = new List<List<double>>();
+
             return success;
 
         }

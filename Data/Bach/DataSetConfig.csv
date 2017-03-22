@@ -11,10 +11,10 @@ BachChorales
 #TestingSet  Y Path
 ../../../Data/Bach/testingSetXY.csv
 #X ignore list, comma separated and starting with w if it's a whitelist (otherwise, blacklist)
-b, 0, 16
+b, 0, 1, 17
 #Y ignore list, as above
-w, 16
+w, 17
 #Categorical Variables, white/blacklist, comma separated
-w, 14, 15
+w, 14, 15, 16
 #Boolean Variables, as above
-w, 
+b, 0, 1, 14, 15, 16, 17
