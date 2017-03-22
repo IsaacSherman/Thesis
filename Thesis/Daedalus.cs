@@ -310,7 +310,21 @@ namespace MyCellNet
             {
                 t.Start();
             }
-            while (threadPool.Any(t => t.IsAlive)) Thread.Sleep(500);
+            while (threadPool.Any(t => t.IsAlive))
+            {
+                for (int i = threadPool.Count-1; i > 0; --i)
+                {
+                    Thread t = threadPool[i];
+                    if (!t.IsAlive)
+                    {
+                        threadPool.RemoveAt(i);
+                        continue;
+                    }
+                    
+
+                } 
+                Thread.Sleep(5000);
+            }
 
 
             foreach (Hunter x in population)
