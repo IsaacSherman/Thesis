@@ -90,11 +90,12 @@ namespace EvoOptimization
             D.MaxCellComplexity = maxComp;
             D.ConfigureCellDelegatesForDatabase();
 
-
-            D.Run();
-
-            decisionTreeProgram.ConfigureAndRun();
+            //System.Threading.Thread t = new System.Threading.Thread(() => D.Run());
+            //t.Start();
             naiveBayesProgram.ConfigureAndRun();
+            
+            decisionTreeProgram.ConfigureAndRun();
+            //D.Run();
 
 
 

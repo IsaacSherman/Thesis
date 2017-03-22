@@ -21,7 +21,7 @@
 % \documentclass[dissertation,letterpaper,12pt]{utthesis} . . .
 \renewcommand{\baselinestretch}{1.5} 	 % line Spacing
 
-%\includeonly{chapters/chapter-1}
+%\includeonly{chapters/chapter-2}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TO DO: FILL IN YOUR INFORMATION BELOW - READ THIS SECTION CAREFULLY
@@ -49,6 +49,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % LOAD SOME USEFUL PACKAGES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\usepackage{color}
+\usepackage{color}
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
@@ -57,6 +58,7 @@
 \usepackage{nomencl}                    % produces a nomenclature
 \usepackage{float}                      % figure floats
 \usepackage{natbib}                     % this package allows you to link your references
+\usepackage{siunitx}
 \usepackage{graphicx}					% graphics package
 \graphicspath{ {figures/}{figures/eps/}{figures/pdf/} }% specify the path where figures are located
 \usepackage{fancyhdr}                   % fancy headers and footers
@@ -113,7 +115,29 @@
 	extendedchars=false
 }
 
-\renewcommand{\thefigure}{Figure \arabic{chapter}.\arabic{figure}}
+%\renewcommand{\thefigure}{Figure \arabic{chapter}.\arabic{figure}}
+
+\usepackage{nameref}
+
+\makeatletter
+% Grab the old \addcontentsline, which has been already being redefined by hyperref (eventually)
+\let\latex@@addcontentsline\addcontentsline 
+
+\AtBeginDocument{%
+	\renewcommand{\addcontentsline}[3]{%
+		\def\@@zzz{#1}\def\@@zxx{lol}
+		\latex@@addcontentsline{%
+			\ifx\@@zzz\@@zxx lof\else #1\fi
+		}{#2}{#3}%
+	}
+	
+	\renewcommand\lstlistingname{}
+	\let\l@lstlisting\l@figure
+	\let\c@lstlisting\c@figure
+	\let\thelstlisting\thefigure
+	\let\ftype@lstlisting\ftype@figure
+}
+\makeatother
 
 %%% PACKAGES THAT ARE PRELOADED WITH THE CLASS ARE: amsmath,amsthm,amssymb,setspace,geometry,hyperref,and color
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

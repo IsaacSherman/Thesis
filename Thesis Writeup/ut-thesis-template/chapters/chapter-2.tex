@@ -38,7 +38,7 @@ We do some preprocessing of the data.  First and foremost, there is a text file
 that is read which describes the dataset and points to where it is on the
 filesystem.  Below is an example- this tells the program where it can find X and
 Y and how to parse them.\pagebreak
-\begin{lstlisting}[language=config]
+\begin{lstlisting}[language=config, caption={Cardio Config File}, label={fig:config}]
 #Dataset Name
 CardioData
 #Class Names File
@@ -61,6 +61,7 @@ w,
 #Boolean Variables, as above
 w, 
 \end{lstlisting}
+
 For instance, in this case X(the data) and Y(the labels) are in the same file,
 but represented as different columns.  They could easily be stored as two files.
 After those files are explained, the next uncommented line describes the
@@ -223,15 +224,15 @@ values:
 Once these are determined, the optimizer is evaluated.  This means that the training set is passed to the optimizer, it is trained, and then the testing set is passed to it, from which we get the fitness of the classifier.  Fitness is average accuracy.  That is, suppose we have a confusion matrix C\\
 C= \begin{tabular}{|c|c|c|c|c|}
 	\hline
-	Predict:&$\omega_1$&$\omega_2$&$\omega_3$&\textbf{Total}\\
+	True:&$\omega_1$&$\omega_2$&$\omega_3$&\textbf{Total}\\
 	\hline
-	True $\omega_1$&4&2&8&\textbf{14}\\
+	Predicted $\omega_1$&4&2&5&\textbf{11}\\
 	\hline
-	True $\omega_2$&2&2&6&\textbf{10}\\
+	Predicted $\omega_2$&2&2&5&\textbf{9}\\
 	\hline
-	True $\omega_3$&5&5&110&\textbf{120}\\
+	Predicted $\omega_3$&8&6&110&\textbf{120}\\
 	\hline
-	Total&\textbf{11}&\textbf{9}&\textbf{124}&\textbf{144}\\
+	Total&\textbf{14}&\textbf{10}&\textbf{124}&\textbf{144}\\
 	\hline
 \end{tabular} 
 \\The dataset in this case has 3 classes, $\omega_1$, $\omega_2$, and $\omega_3$, and has 144 total samples.  Of those, 14 are class $\omega_1$, 10 are class $\omega_2$, and 120 are class $\omega_3$.  Meanwhile, the classifier predicted that 11 of the samples were $\omega_1$, 9 were $\omega_2$, and 124 were $\omega_3$.  To determine accuracy, the equation is $\frac{\sum_{i=1}^{3}C_{ii}}{144}$.  This is a good metric for relatively evenly distributed classes.  However, in highly skewed cases as this one, this treats more rare classes as less important.  For instance, in this case, the accuracy is $\frac{116}{144} = .805$, which might seem like it is doing a decent job, and maybe it is, if the concern is finding Cs.  Average accuracy is slightly more complicated to calculate, but still straightforward enough.  First, lets define the Total column more formally: $$T(\omega_i)=\sum_{j=1}^{N}C_{ij}$$
@@ -256,9 +257,9 @@ Scoring binary or multi-class Optimizers, saving them, much of the file IO, most
 
 \paragraph{Evolver}
 Evolver is the class which makes up the bulk of the evolutionary algorithm.  Where Optimizer provides a framework for the finer details, Evolver handles the broad strokes of evolution.  It maintains a population of Optimizers and handles their life cycles in a way that is both extensible and straightforward.  \\This is in large part due to the fact that the evolution is entirely class-independent, implemented using templates. While it requires that the class being optimized is a subclass of Optimizer, that's really the only requirement; simply sub-classing Evolver and adding a new interface would allow dramatic changes to the function being optimized.\\First, let's look at our modified algorithm, as this will provide more details.
-\begin{lstlisting}
+\begin{lstlisting}[caption= {Evolver Algorithm}, label = {fig:evolverAlgorithm}]
 AdvanceGeneration():
-	#P is the population and a class variable 
+	//P is the population and a class variable 
 	EvaluateAllOptimizers(P)
 	GetMetrics()
 	P.ReverseSort()
@@ -293,7 +294,7 @@ There's only one more major component to the hybrid approach, and that is the Op
 There are of course many, many more details in the code itself, which is available in the appendix, and comments provide motivation for much of the detail in situ.  This writeup should cover the high points, however, and give a reader an idea of what they are looking at in the code.
 \section{Purist Approach}
 In this section, we will discuss the implementation of a pure approach to classification.  Classification is executed by the evolutionary algorithm itself.  To understand all the parts working together, a bottom-up approach is instructive.  However, to guide that discussion, let us begin by motivating the algorithm.
-For an evolutionary algorithm, we need a population of solutions to evolve.  In this case, we borrow the terminology from \cite{kharma_project_2004} and say the population comprises Hunters, which are the form our solution will take.  These hunters each have one or more chromosomes, which each have one or more cells.  Now we shall look in each component in detail.
+For an evolutionary algorithm, we need a population of solutions to evolve.  In this case, we borrow the terminology and much of the methodology from \cite{kharma_project_2004} and say the population comprises Hunters, which are the form our solution will take.  While this paper may not be a perfect reimplementation of theirs, it is strongly inspired.  These hunters each have one or more chromosomes, which each have one or more cells.  Now we shall look in each component in detail.
 \paragraph{Cells}
 The cells are the fundamental building block of the hunter.  Each cell codes for a function, an upper and a lower limit, and a not flag.  Each cell has the ability to vote on a sample, which is an array of some number of doubles, each of which must be $\epsilon[0,1)$.  When a cell votes on a sample, it is equivalent to saying, "feature f is [not] between lower limit and upper limit".  Where not is the not flag, and feature f is a particular entry in the sample.  Lower and upper limits are each binary encoded reals, which use 8 bits each.  The encoding is straightforward- the bits have all been shifted so that rather than the least significant bit being the $2^0$ power, it is the $2^{-9}$, allowing the most significant bit to be the $2^{-1}$, giving each limit the ability to code for 0 to $\frac{511}{512}= 1-2^{-9} \approxeq .998 $.  This is why in preprocessing we squeeze values down so that they are attainable by Cells.  The limits take 8 bits each, then the not flag takes another, and the feature bits take $\lceil log_2(Features)\rceil$ bits\\There is some error checking here, the lower limit bits cannot be greater than the upper limit bits, and so they'll be swapped if that occurs.  Also, the feature bits, unless there are a power of 2 features in the dataset will have illegal values.  If these occur, all of the feature bits are rerolled randomly until compliant.\\
 Finally, there is also a join bit whose purpose is simply whether or not to include the next cell in the vote- if the join bit is false, even if there are other cells to vote, then voting ends.  This illustrates a breach in the chain, and is  analogous to a form of gene regulation.  More importantly, it allows genetic information to accumulate without affecting a particular Hunter's vote.  This sort of functionality, that is the ability to turn off a gene while it mutates and changes, has been shown in \cite{zhang_evolution_2003} to be a critical component in gene duplication's role in increasing informational complexity- we hope to take advantage of a very powerful evolutionary mechanism by providing a means of doing so.\\
@@ -303,7 +304,7 @@ Next, we have the chromosome, which is simply a sequence of one or more cells, w
 Cells vote in sequence.  Each vote is logically ANDed with the next.  If at any point a vote is false, voting stops and false is returned.  The Chromosome then takes this vote and passes it up to the Hunter which called it after inverting it if the not flag so dictates.
 \paragraph{Hunter}
 At the highest level of the critter hierarchy is the Hunter.  Here, there are no additional bits, they simply aggregate the votes of their on or more chromosomes.  We can now discuss explicitly the voting process.  
-\begin{lstlisting}[language = algorithm]
+\begin{lstlisting}[language = algorithm, caption={Purist Voting Algorithms}, label = {fig:vote}]
 Hunter.Vote(Sample x):
 	Counts[] := new Int[Classes]
 	for each Chromosome c in Chromosomes:
@@ -334,8 +335,7 @@ Our crossover is invoked at the hunter level.  Any two hunters may be crossed.  
 In the highest level case, the operation can be thought of as crossover with chromosomes laid out contiguously.  In the event that hunters have a different number of chromosomes, the remainder are allocated randomly according to the crossover rate.\\
 In the middle case, Chromosomes perform a similar function with cells.  Cells are left untouched but are swapped back and forth, functioning similarly to bits in a standard crossover operation.  \\
 In the lowest case (which we call Uniform), the case we have implemented, there's crossing over at all levels. It is probably most easily seen in algorithm form.\\\\
-\begin{minipage}{\linewidth}
-\begin{lstlisting}[language = algorithm]
+\begin{lstlisting}[language = algorithm, caption={Hunter Crossover}, label={fig:HunterXover}]
 Hunter.Crossover(Hunter a, Hunter b):
 	target = new Hunter(), notTarget = new Hunter()//Empty hunters for receiving genetic code
 	least = min(a.Chromosomes, b.Chromosomes)
@@ -354,13 +354,10 @@ Hunter.Crossover(Hunter a, Hunter b):
 		target.AddChromosome(MaxHunter[i])
 	return target,notTarget;
 \end{lstlisting}
-\end{minipage}
-
 One minor addition here is that target and notTarget are actually pointers to hunters (and below to Chromosomes), though it obfuscates the algorithm unnecessarily to spell that out in pseudocode, particularly because switch targets is intuitive even if not explicit.  
-As you can see, this allows us to cross hunters of any length.  The algorithm for Chromosomes is similar, except that unlike hunters they have genetic material of their own to cross.
+As you can see, this allows us to cross hunters of any length.  The algorithm for Chromosomes is similar, except that unlike hunters they have genetic material of their own to cross.  However, what should also be clear is that while different lengths of chromosomes and hunters might arise, there is no mechanism here to increase those lengths.
 
-\begin{minipage}{\linewidth}
-\begin{lstlisting}[language = algorithm]
+\begin{lstlisting}[language = algorithm, caption={Chromosome Crossover}, label={fig:ChromoXover}]
 Chromosome.Crossover(Hunter a, Hunter b):
 	target = new Chromosome(), notTarget = new Chromosome()least = min(a.Cells, b.Cells)
 	most = max(a.Cells, b.Cells)
@@ -373,7 +370,6 @@ Chromosome.Crossover(Hunter a, Hunter b):
 		if (RNG.Next < CrossoverChance)
 			switchTargets(target, notTarget)
 	//Now that the chromosome specific bits are crossed, we may proceed	
-	
 	for i = 0 to least:
 		newChromosomes = Chromosome.CrossOver(a[i], b[i])
 		if (RNG.Next < CrossoverChance)
@@ -386,6 +382,101 @@ Chromosome.Crossover(Hunter a, Hunter b):
 		target.AddCell(MaxChromosome[i])
 	return target,notTarget;
 \end{lstlisting}
-\end{minipage}
 Cell.Crossover is the usual implementation of uniform crossover.
-Complexity is an issue here- if many chromosomes increased fitness, this could set off a run-away race toward
+The lengths of Hunters and Chromosomes is something we refer to as complexity.  Specifically, complexity is the number of Cells in a Hunter.  So a Hunter with 2 Chromosomes with 1 Cell each and a Hunter with 1 Chromosome with 2 Cells have the same complexity for our purposes.  
+With crossover and mutation, the complexity of a population will never increase beyond what is injected at the beginning.  The maximum complexity of an individual, further, can never increase with this method- in fact, it is statistically highly likely to decrease, unless there are many instances of that maximum in the population.\\
+To allow our algorithm to manipulate complexity on its own, we use the genetic operator Merger, first introduced in \cite{kharma_project_2004}.  When two Hunters merge, the result is a single Hunter with the sum of their complexities.  To accomplish this, the Chromosomes of the Hunters need to be merged in some way.  This is where the Affinity bits on the Chromosome come into play.\\
+\paragraph{Merger}
+In the broadest sense, Merger can be seen as combining the Chromosomes of two Hunters.  One option would simply be to append the Chromosomes in one list to the other.  But this would eventually yield many short Chromosomes, each with few cells.  Instead, Merger uses Chromosomes' affinity to control how the merging is accomplished.  First, recall that there are 2 affinity bits, resulting in 4 possible combinations. See table \ref{tab:affinity} for details.\\
+\begin{table}
+\centering
+
+\begin{tabular}{|c c | l|}
+	\hline
+	a & b & Meaning \\
+	\hline
+	0 & 0 & No preference.\\
+	0 & 1 & Prefers to be at the rear.\\
+	1 & 0 & Prefers to be at the front.\\
+	1 & 1 & Considers itself complete.\\
+	\hline
+\end{tabular}\\
+\caption{Interpretation of Affinity Bits}
+\label{tab:affinity}
+\end{table}
+When two chromosomes are merged, two outcomes are possible.  First, both Chromosomes merge vertically- that is, they are both copied into the new Hunter next to each other in the list, retaining all distinguishing characteristics.  Second, the Chromosomes merge horizontally, with one chromosome being the front and the other being the rear.  The front Chromosome carries the class and affinity bits, the ones in the rear are destroyed.  To determine which, compare the affinity bits of the 2 with an AND.  This reveals where conflicts are: if the result is not 00, then the Chromosomes merge vertically.  If the result is 00, the Chromosomes merge horizontally, with one exception: Chromosomes which consider themselves complete will always merge vertically.
+To determine which Chromosome goes in the front, we see which one has a preference. If there is none and there are no conflicts, Chromosome A goes to the front.  To be more explicit, see table \ref{tab:merger}.\\
+\begin{table}
+	\centering
+\begin{tabular}{|c c | l|}
+	\hline
+	A & B & Result\\
+	\hline
+	%start with horizontal, A first
+	00 & 00 & \\
+	00 & 01 &\\
+	10 & 00 &\\
+	10 & 01 &Laid out Horizontally with A in front\\
+	\hline
+	00 & 10&\\
+	01 & 00&\\
+	01 & 10& Laid out Horizontally with B in front\\
+	\hline
+	11 & ** & \\
+	** & 11 & \\
+	10 & 10 & \\
+	01 & 01 & Laid out Vertically\\
+	\hline	
+\end{tabular}
+\caption{Merger Outcomes} \label{tab:merger}
+\end{table}	\\
+This allows for the growth of complexity in a nuanced way.  However, in any of these cases, we have doubling complexity- this will easily lead to an explosion of complexity, since there is no mechanism to explicitly reduce complexity.    Crossover serves to move complexity toward the average, and mutation ignores complexity altogether.  The only one we have is implicit, that is, if complex individuals are less fit they will be removed from the breeding pool eventually.  However, if they are more fit, then they are likely to double in complexity, etc.  Because this is exponential growth, we must be careful to curb it.  Exactly how we do this requires discussion of our fitness function.\\
+\paragraph{Fitness}
+At the outset, our fitness function is the same as the one which we have discussed for our Optimizers- average accuracy, or $\overline{A}$.  We reduce this with complexity, such that: $$F_{Hunter} = \overline{A} \bigg( \frac{C_{Max} - C}{C_{Max}}\bigg)$$
+where $C_{Max}$ is the complexity cap and C is the Hunter's complexity.  $C_{Max}$ is quite high, 2000, and we haven't seen it reach the point where fitness become negative, however we still set negative fitness to 0.  So this has a modest impact on fitness- most of the time it is multiplying by something fairly close to unity.  Two Hunters with identical $\overline{A}$ are likely to have different complexities, meaning the simpler one will get the edge when sorting. The other reason we adjust the fitness function goes all the way back to the mid-eighteenth century.\\
+Specifically, all the way to Bach.  Bach wrote many chorales, 4 part harmonies which each have a key.  There are many possible keys, 103 in fact.  In the formulation of the dataset as a classification problem, each key becomes a class and that means that we have a very sparse matrix of 103*103 to score.  The problem is that chances of getting any particular class correct is so unlikely that there's not much pressure to find new ways of doing it.  So here, we tweak our fitness function again.  $$F_{Hunter} = \overline{A} \bigg( \frac{C_{Max} - C}{C_{Max}}\bigg) \bigg( \frac{E-Z}{E}\bigg)$$
+In this last portion, E is the number of classes in the dataset, where Z is the number of classes for which the Hunter has made 0 predictions.  Thus, if all of the predictions are in one or two classes, we are left with a high factor reducing the fitness of the Hunter.  Likewise, hunters which make predictions in more classes will realize a bonus compared to their peers.
+This modification doesn't hurt convergence in datasets with smaller numbers of classes, and does help with Bach's chorales.  We will discuss results in more detail in chapter 3.  Earlier modifications were more stepwise and could even result in negative fitness, but these had little positive impact.
+\paragraph{Daedalus}
+All that remains for the purist approach is to discuss Daedalus\footnote{The initial idea was to have Daedalus as the trainer and Icarus as the Validator, but this was deemed unnecessary and validation was rolled into Daedalus.}  , the functional equivalent to Evolver for the Optimizers.  Daedalus handles local constants and file IO.  Unlike in Evolver, it is solely responsible for IO.  Like Evolver, it captures metrics and runs a version of the standard GA which is pretty close to the canonical interpretation.  Logically, it is almost identical to \ref{fig:evolverAlgorithm}. We instead will focus on how the next generation is generated.
+\begin{lstlisting}[language=algorithm, caption={Daedalus Generate Next Generation}, label={fig:daedalusga}]
+Daedalus.GenerateNextGeneration():
+	BreedingPop = StochasticUniformSample(P)
+	nextGen = Elitism(P)
+	FillListFromBreedingPop(nextGen, BreedingPop)
+	for i from P.Count*ElitePercent to P.Count:
+		nextGen[i].Mutate()
+	P = nextGen
+
+Daedalus.FillListFromBreedingPop(nextGen, BreedingPool):
+	mergeList = List
+	for i from 0 to BreedingPool.Count:
+		if(RNG.NextDouble() < MergePercent) mergeList.Append(i)
+	used = mergeList.Set()//Don't want to pick other mergees
+	for each target in mergeList:
+		k = GetUnpickedInt(BreedingPop.Count, used)
+		used.Append(k)
+		nextGen.Add(Hunter.Merge(BreedingPop[target], BreedingPop[k]))
+	while nextGen.Count < P.Count:
+		j = RNG.NextInt(0, ElitismPercent*BreedingPop.Count)
+		k = RNG.NextInt(0, BreedingPop.Count))
+		for each Hunter x in (Hunter.Crossover(BreedingPop[j], BreedingPop[k])):
+			nextGen.Add(x)
+	while nextGen.Count > P.Count:
+		nextGen.Pop()
+	
+GetUnpickedInt(Max, picked):
+	if(picked.Count >= Max) return -1
+	unpicked = RNG.Next(0, Max)
+	while picked.Contains(unpicked):
+		unpicked = RNG.Next(0, Max)
+	return unpicked
+		
+\end{lstlisting}
+
+A few things worth noticing in this algorithm: Merge is executed first, and all Hunters in the breeding pool get a chance at merging, and an effort is made to prevent any particular Hunter from merging more than once.  Used (and picked in GetUnpickedInt()) are Sets, which only retain the first copy of any element added to them.  While not strictly necessary for this algorithm, there are other cases where duplicate entries are more likely and GetUnpickedInt was already implemented with Sets.
+Also, breeding takes place until the next generation is the same size as the original population, so this method is resilient to changes to Crossover and Merge, and errors in case there were inviable offspring, which is not an issue with our implementation but a cautionary design principle to keep that as a possible change.\\
+One major difference between Daedalus and Evolver's mode of advancing generation is that Daedalus incorporates validation into its algorithm.  That is, every time time data will be written to disk (in our case, every 25 generations), the entire population is evaluated, sorted, and bred based on the validation dataset, which is identical to the testing set for the Optimizers.  The idea is to drive evolution using the training set, and occasionally course-correct with the validation set.  Where classifiers have a distinct, defined method for doing this (for instance, Bayes building a model from the training set), with GAs the evolution \textit{is} the method of learning.  Similarly, because this additional time is necessary, the Purist Approach takes 10 times as many generations, and has a larger population by a similar factor, to the Optimizers.  
+Also, because Daedalus is native, we can make use of multi-threading to improve processor efficiency.\\
+The last thing worth noting about Daedalus is that its starting condition has a few criteria that are different to it than the Optimizers.  First, each Hunter is given E (where E is the number of classes in the data) Chromosomes to begin with, at 1 cell each.  The class bits are then initialized to count from 0 to E, so that it is guaranteed to have a Chromosome voting for each of the classes.  While we recognize that this might be seen as ad hoc tweaking\footnote{Or Alchemy.}, it is rooted in strong intuitions about this algorithm and its shortcomings.  While we don't have the data any longer, it managed to get the Hunters working on the Bach dataset over a considerable hump.\\
+In this chapter, we have discussed in detail how our algorithms work. We explained how to configure a dataset to work with our methods.  We described the changes we need to make to the dataset before we pass it to the programs responsible for them, whether they are external or internal.  We then discussed the theoretical underpinnings of two different classifiers which we then optimize 2 ways each, and finally discussed our own purist approach.  Next, we will discuss the results of our implementations.
