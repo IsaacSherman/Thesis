@@ -53,6 +53,7 @@
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
+\usepackage{beamer}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{nomencl}                    % produces a nomenclature
@@ -190,7 +191,7 @@
     \listoffigures % generate a list of figures
     %
     %\makenomenclature % OPTIONAL
-    \addToPDFBookmarks{0}{Nomenclature}{g} % OPTIONAL
+    %\addToPDFBookmarks{0}{Nomenclature}{g} % OPTIONAL
     %\printnomenclature[1.25in] % OPTIONAL
     %
     \newpage
@@ -199,7 +200,7 @@
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % INCLUDE THE CHAPTERS STARTING WITH THE NOMENCLATURE IF PRESENT
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    \include{front-matter/nomenclature} % OPTIONAL
+    %\include{front-matter/nomenclature} % OPTIONAL
     \include{chapters/chapter-1}
     \include{chapters/chapter-2}
     \include{chapters/chapter-3}

@@ -92,11 +92,12 @@ namespace EvoOptimization
 
             //System.Threading.Thread t = new System.Threading.Thread(() => D.Run());
             //t.Start();
+            //D.Run();
+
             naiveBayesProgram.ConfigureAndRun();
             
             decisionTreeProgram.ConfigureAndRun();
-            //D.Run();
-
+            
 
 
             SerializationChecks();

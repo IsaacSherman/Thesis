@@ -240,6 +240,7 @@ namespace MyCellNet
                 {
                     x.Append(OptoGlobals.ClassList[i] + ",");
                 }
+                x.AppendLine();
                 for (int i = 0; i < OptoGlobals.NumberOfClasses; ++i)
                 {
                     x.Append(OptoGlobals.ClassList[i] + ",");

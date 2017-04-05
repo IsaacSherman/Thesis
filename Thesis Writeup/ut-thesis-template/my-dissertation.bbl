@@ -1,9 +1,5 @@
 \begin{thebibliography}{}
 
-\bibitem[ced, 2002]{cedar_cedar_2002}
- (2002).
-\newblock {CEDAR} {Databases}.
-
 \bibitem[Affenzeller and Wagner, 2003]{affenzeller_self-adaptive_2003}
 Affenzeller, M. and Wagner, S. (2003).
 \newblock A self-adaptive model for selective pressure handling within the
@@ -33,6 +29,10 @@ Back, T. (1994).
 \newblock In {\em Proceedings of the {First} {IEEE} {Conference} on
   {Evolutionary} {Computation}. {IEEE} {World} {Congress} on {Computational}
   {Intelligence}}, pages 57--62 vol.1.
+
+\bibitem[{CEDAR}, 2002]{cedar_cedar_2002}
+{CEDAR} (2002).
+\newblock {CEDAR} {Databases}.
 
 \bibitem[Chou et~al., 2014]{chou_optimizing_2014}
 Chou, J.-S., Cheng, M.-Y., Wu, Y.-W., and Pham, A.-D. (2014).
@@ -91,6 +91,12 @@ Hyafil, L. and Rivest, R.~L. (1976).
 {J. P. Marques de SÃ¡}, {J. Bernardes}, and {D. Ayres de Campos} (2010).
 \newblock {UCI} {Machine} {Learning} {Repository}: {Cardiotocography} {Data}
   {Set}.
+
+\bibitem[Jurman et~al., 2012]{jurman_comparison_2012}
+Jurman, G., Riccadonna, S., and Furlanello, C. (2012).
+\newblock A {Comparison} of {MCC} and {CEN} {Error} {Measures} in
+  {Multi}-{Class} {Prediction}.
+\newblock {\em PLOS ONE}, 7(8):e41882.
 
 \bibitem[Kharma et~al., 2004]{kharma_project_2004}
 Kharma, N., Kowaliw, T., Clement, E., Jensen, C., Youssef, A., and Yao, J.
@@ -158,6 +164,14 @@ Ocak, H. (2013).
 {Paul Horton} (1996).
 \newblock {UCI} {Machine} {Learning} {Repository}: {Yeast} {Data} {Set}.
 
+\bibitem[Radicioni and Esposito, 2010]{radicioni_breve:_2010}
+Radicioni, D.~P. and Esposito, R. (2010).
+\newblock {BREVE}: {An} {HMPerceptron}-{Based} {Chord} {Recognition} {System}.
+\newblock In Raś, Z.~W. and Wieczorkowska, A.~A., editors, {\em Advances in
+  {Music} {Information} {Retrieval}}, number 274 in Studies in {Computational}
+  {Intelligence}, pages 143--164. Springer Berlin Heidelberg.
+\newblock DOI: 10.1007/978-3-642-11674-2\_7.
+
 \bibitem[Ruiz et~al., 2015]{ruiz_biased_2015}
 Ruiz, E., Albareda-Sambola, M., Fernández, E., and Resende, M. G.~C. (2015).
 \newblock A biased random-key genetic algorithm for the capacitated minimum
@@ -202,6 +216,11 @@ Uysal, A.~K. and Gunal, S. (2014).
 \newblock Text classification using genetic algorithm oriented latent semantic
   features.
 \newblock {\em Expert Systems with Applications}, 41(13):5938--5947.
+
+\bibitem[Wei et~al., 2010]{wei_novel_2010}
+Wei, J.-M., Yuan, X.-J., Hu, Q.-H., and Wang, S.-Q. (2010).
+\newblock A novel measure for evaluating classifiers.
+\newblock {\em Expert Systems with Applications}, 37(5):3799--3809.
 
 \bibitem[Wu et~al., 2015]{wu_evolving_2015}
 Wu, J., Long, J., and Liu, M. (2015).
