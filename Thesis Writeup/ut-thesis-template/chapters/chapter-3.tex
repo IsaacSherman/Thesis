@@ -134,10 +134,10 @@ TPR:&0.661&0.554&0.768&1&0.947&0.97&0.959&0.8&0.929&1&0.859\\
 \label{tab:yeastmcnbbase}
 \end{table}
 
-\begin{table}[h!]
 \paragraph{McNB w/ feature selection:}
 With feature selection, Multiclass Na\"ive Bayes had the highest $\overline{A}$ of 87\%, though with an accuracy of only 72.8\%.  The disparity is accounted for in the accuracy across the first 3 classes, which make up more than $\frac{3}{4}$ of the dataset.  On them, accuracy ranged between abysmal and mediocre.  We can clearly see the danger of a highly skewed dataset and the dangers of metrics than are do not take this sufficiently into account.  See table \ref{tab:yeastctreebase} for details.
 \\
+\begin{table}[h!]
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
 	\hline
 Class&MIT&NUC&CYT&ME1&EXC&ME2&ME3&VAC&POX&ERL&Total\\
@@ -162,12 +162,13 @@ TPR:&0.689&0.462&0.677&1&0.947&1&1&1&0.929&1&0.87\\
 \end{table}
 
 
-\begin{table}[h!]
+
 	\paragraph{Hunter}
 The Hunter underperformed the four other methods by any measure, and took a great deal (more than 100 times) more processor time to do it.  This was supposed to be the best case for the Hunters, and early indications say that it is.  $\overline{A}$ = .473\%, while accuracy is 51.1\%.  Table \ref{tab:yeasthunter}.
 \\
 	% TODO: Write writeup, interpret bits
-	\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+\begin{table}[h!]
+		\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
 		\hline
 		Class&MIT&NUC&CYT&ME1&EXC&ME2&ME3&VAC&POX&ERL&Total\\
 		\hline
@@ -426,7 +427,7 @@ Unusually, performance decreased by most metrics here.  That might be indicative
 \paragraph{McNB Baseline}
 Here, we see a marked difference in performance between CTree and McNB.  MCC at 0.785 is noticeably higher, and CEN at 0.139 is lower by about the same margin, and accuracy beats the original paper at 79.4\%.  $\overline{A}$ is the biggest difference, though, and nearly triples the baseline CTree's result at 66.2\%.
 \paragraph{McNB w/ Feature Selection}
-This optimizer performs comparably to the baseline, being slightly better in MCC (0.794), CEN(0.136) and Accuracy(80.3\%), but coming in slightly under in $\overline{A}$.  
+This optimizer performs comparably to the baseline, being slightly better in MCC (0.794), CEN(0.136) and Accuracy(80.3\%), but coming in slightly under in $\overline{A}$ at 65.3\%.  
 \paragraph{Hunter}
 Due to numerous troubles getting the Hunters to run on this dataset, we still don't have results from more than a few dozen generations.  To be added as we get them.  Our 1,925 generation run, which took 3 weeks, resulted in an MCC of 0.196, and a CEN of 0.307, which is better than random.  However, because the training set was missing a handful of the more rare classes, it isn't an apples-to-apples comparison.  We'll update this with whatever we can gather from our current run, which is up to 15 generations at the time of writing.
 

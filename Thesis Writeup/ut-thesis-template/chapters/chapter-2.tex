@@ -220,16 +220,16 @@ C= \begin{tabular}{|c|c|c|c|c|}
 	\hline
 	True:&$\omega_1$&$\omega_2$&$\omega_3$&\textbf{Total}\\
 	\hline
-	Predicted $\omega_1$&4&2&5&\textbf{11}\\
+	Predicted $\omega_1$&4&6&5&\textbf{15}\\
 	\hline
-	Predicted $\omega_2$&2&2&5&\textbf{9}\\
+	Predicted $\omega_2$&2&2&9&\textbf{13}\\
 	\hline
-	Predicted $\omega_3$&8&6&110&\textbf{120}\\
+	Predicted $\omega_3$&8&2&110&\textbf{120}\\
 	\hline
-	Total&\textbf{14}&\textbf{10}&\textbf{124}&\textbf{144}\\
+	Total&\textbf{14}&\textbf{10}&\textbf{124}&\textbf{148}\\
 	\hline
 \end{tabular} 
-\\The dataset in this case has 3 classes, $\omega_1$, $\omega_2$, and $\omega_3$, and has 144 total samples.  Of those, 14 are class $\omega_1$, 10 are class $\omega_2$, and 120 are class $\omega_3$.  Meanwhile, the classifier predicted that 11 of the samples were $\omega_1$, 9 were $\omega_2$, and 124 were $\omega_3$.  To determine accuracy, the equation is $\frac{\sum_{i=1}^{3}C_{ii}}{144}$.  This is a good metric for relatively evenly distributed classes.  However, in highly skewed cases as this one, this treats more rare classes as less important.  For instance, in this case, the accuracy is $\frac{116}{144} = .805$, which might seem like it is doing a decent job, and maybe it is, if the concern is finding Cs.  Average accuracy is slightly more complicated to calculate, but still straightforward enough.  First, lets define the Total column more formally: $$T(\omega_i)=\sum_{j=1}^{N}C_{ij}$$
+\\The dataset in this case has 3 classes, $\omega_1$, $\omega_2$, and $\omega_3$, and has 148 total samples.  Of those, 14 are class $\omega_1$, 10 are class $\omega_2$, and 124 are class $\omega_3$.  Meanwhile, the classifier predicted that 11 of the samples were $\omega_1$, 9 were $\omega_2$, and 124 were $\omega_3$.  To determine accuracy, the equation is $\frac{\sum_{i=1}^{3}C_{ii}}{144}$.  This is a good metric for relatively evenly distributed classes.  However, in highly skewed cases as this one, this treats more rare classes as less important.  For instance, in this case, the accuracy is $\frac{116}{148} = 0.784$, which might seem like it is doing a decent job, and maybe it is, if the concern is finding Cs.  Average accuracy is slightly more complicated to calculate, but still straightforward enough.  First, lets define the Total column more formally: $$T(\omega_i)=\sum_{j=1}^{N}C_{ij}$$
 Where N is the number of classes.  Thus, average accuracy, $\overline{A}$ can be defined as $$\overline{A} = \frac{\sum_{i=1}^{N}\frac{C_{ii}}{T(\omega_i)}} {N}$$
 In our example, $\overline{A}$ is .467, which seems more like the classifier is doing barely better than chance.  In fact, if it had just guessed everything was $\omega_3$, accuracy would be higher (.833), but $\overline{A}$ would have been .333.  Further, $\overline{A}$ is equivalent to accuracy if all classes are equally distributed, thus there is no disadvantage to using it.  Average accuracy is a major factor to the fitness functions used in this project.\\
 We will next discuss another type of optimizer, and then we will discuss what they have in common.

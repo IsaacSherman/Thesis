@@ -16,7 +16,13 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{nameref}
+\makeatletter
+\newcommand*{\currentname}{\@currentlabelname}
+\makeatother
+\newcommand{\myresizetable}[1]{\resizebox{\linewidth}{!}{#1}}
 
+\bibliographystyle{apalike-doi} % bibliography style - recommend using apalike-doi as it hyperlinks DOIs
 \AtBeginSection[]
 {
 	\begin{frame}
@@ -465,9 +471,23 @@ Cells comprise the following:
 		\item -1 indicates perfect anti-classifier
 		\item 0 indicates one or more columns is equal to 0
 	\end{itemize}
+	
 \end{frame}
+
 \begin{frame}{Metrics}
-	Consider C = \\\begin{tabular}{|c|c|c|c|c|}
+	CEN is a bit more complicated:\begin{align*}
+		CEN &= - \sum_{j}^{N+1}P_j\sum_{k}^{N+1}P^j_{j,k}log_N(P^j_{j,k}) + P^j_{k,j}log_N(P^j_{k,j})\\
+		\\
+		P^i_{i,j}&=\frac{C_{i,j}}{\sum_{k=1}^{N+1}C_{i,k} + C_{k,i}}\\
+		\\
+		P^j_{i,j}&=\frac{C_{i,j}}{\sum_{k=1}^{N+1}C_{j,k} + C_{k,j}}\\
+		\\
+		P_j&= \frac{\sum_{k=1}^{N+1}C_{j,k}+ C_{k,j}}{2\sum_{k,l}^{N+1}}C_{k,l}
+	\end{align*}
+\end{frame}
+
+\begin{frame}{Metrics}
+	Let's return to our example confusion matrix: \\\begin{tabular}{|c|c|c|c|c|}
 		\hline
 		True:&$\omega_1$&$\omega_2$&$\omega_3$&\textbf{Total}\\
 		\hline
@@ -481,14 +501,555 @@ Cells comprise the following:
 		TPR&0.286&0.20&0.89&.459\\
 		\hline
 	\end{tabular} 
-	\\In this case, $A$ = $\frac{4+2+110}{148} = 78.4\%$, but $\overline{A} = .459$, which better reflects its performance. 
-	%(MCC and CEN are 0.293 and 0.356, respectively)
+	\\MCC and CEN are 0.293 and 0.356, respectively.\\
+	This is actually fairly good for CEN.\\
+	MCC tells a different story.
+\end{frame}
+\begin{frame}{Metrics}
+	A few more examples of CEN and MCC applied to toy matrices, adapted from \cite{wei_novel_2010}.
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.7\linewidth]{figures/png/MCCCENComparison}
+		\label{fig:mcccencomparison}
+	\end{figure}
+	
+\end{frame}
+\subsection{Datasets}
+\subsubsection{Yeast}
+\begin{frame}
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.9\linewidth]{figures/png/YeastTSNE}
+		\caption[T-SNE visualization of Yeast dataset]{T-SNE visualization of Yeast dataset.}
+		\label{fig:yeasttsne}
+	\end{figure}
+	
+\end{frame}
+\subsubsection{Cardiotocography}
+\begin{frame}
+	\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{figures/png/Cardio3TSNE}
+	\caption[T-SNE visualization of Cardio dataset, NSP]{T-SNE visualization of Cardio dataset, following the NSP classification schema.}
+	\label{fig:cardio3tsne}
+\end{figure}
+
+\end{frame}
+\begin{frame}\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{figures/png/Cardio10TSNE}
+	\caption[T-SNE visualization of Cardio dataset, morphology]{T-SNE visualization of Cardio dataset, following the 10-class morphology schema.  Viewing in color is highly recommended.}
+	\label{fig:cardio10tsne}
+\end{figure}
+\end{frame}
+\subsubsection{Bach's Chorales}
+
+\begin{frame}
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.9\linewidth]{figures/png/BachTSNE}
+		\caption[T-SNE visualization of Bach dataset]{T-SNE visualization of 102 class Bach dataset.  Classes are incredibly difficult to distinguish, but instead focus on the overall shapes and distinct clusters.}
+		\label{fig:bachtsne}
+	\end{figure}
 \end{frame}
 
 \section{Results}
 \subsection{Yeast}
-\subsection{Cardiotocography}
+\begin{frame}{\currentname{: }McNB Baseline}
+	\begin{table}[h!]
+	\resizebox{\linewidth}{!}{	\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+			\hline
+			Class&MIT&NUC&CYT&ME1&EXC&ME2&ME3&VAC&POX&ERL&Total\\\hline
+			MIT&119&10&10&0&0&0&1&0&1&0&141\\
+			NUC&9&108&17&0&0&1&0&0&0&0&135\\
+			CYT&18&35&152&0&1&0&0&1&0&0&207\\
+			ME1&4&4&2&17&0&0&0&0&0&0&27\\
+			EXC&4&6&2&0&18&0&0&0&0&0&30\\
+			ME2&12&9&5&0&0&32&2&0&0&0&60\\
+			ME3&8&10&5&0&0&0&71&0&0&0&94\\
+			VAC&1&5&0&0&0&0&0&4&0&0&10\\
+			POX&5&8&5&0&0&0&0&0&13&0&31\\
+			ERL&0&0&0&0&0&0&0&0&0&5&5\\
+			\hline
+			Total:&180&195&198&17&19&33&74&5&14&5&740\\
+			TPR:&0.661&0.554&0.768&1&0.947&0.97&0.959&0.8&0.929&1&0.859\\
+			\hline
+		\end{tabular}
+	}\caption[Yeast: Multiclass Na\"ive Bayes without Feature Selection Confusion Matrix]{Yeast Dataset, Multiclass Na\"ive Bayes with all features included, Accuracy = 72.8\%, MCC: 0.671 CEN: 0.293}
+		\label{tab:yeastmcnbbase}
+	\end{table}
+
+\end{frame}
+\begin{frame}{\currentname{: }McNB}
+	\begin{table}[h!]
+		\resizebox{\linewidth}{!}{\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+			\hline
+			Class&MIT&NUC&CYT&ME1&EXC&ME2&ME3&VAC&POX&ERL&Total\\
+			\hline
+			MIT&124&22&17&0&0&0&0&0&1&0&164\\
+			NUC&8&90&21&0&0&0&0&0&0&0&119\\
+			CYT&13&36&134&0&1&0&0&0&0&0&184\\
+			ME1&3&1&1&17&0&0&0&0&0&0&22\\
+			EXC&2&3&1&0&18&0&0&0&0&0&24\\
+			ME2&9&8&4&0&0&33&0&0&0&0&54\\
+			ME3&15&20&12&0&0&0&74&0&0&0&121\\
+			VAC&2&9&3&0&0&0&0&5&0&0&19\\
+			POX&4&5&5&0&0&0&0&0&13&0&27\\
+			ERL&0&1&0&0&0&0&0&0&0&5&6\\
+			\hline
+			Total:&180&195&198&17&19&33&74&5&14&5&740\\
+			TPR:&0.689&0.462&0.677&1&0.947&1&1&1&0.929&1&0.87\\
+			\hline
+		\end{tabular}
+		}\caption[Yeast: Multiclass Na\"ive Bayes with Feature Selection Confusion Matrix]{Yeast Dataset, Multiclass Na\"ive Bayes with feature selection included, Accuracy = 72.8\%, MCC: 0.630 CEN: 0.310}
+		\label{tab:yeastmcnbfeatures}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }CTree Baseline}
+
+\begin{table}[h!]
+	\centering
+	\resizebox{\linewidth}{!}{
+	\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+		\hline
+		Class&MIT&NUC&CYT&ME1&EXC&ME2&ME3&VAC&POX&ERL&Total
+		\\\hline
+		MIT&151&14&24&0&0&5&2&1&1&1&199\\
+		NUC&8&145&36&0&1&0&4&1&3&0&198\\
+		CYT&19&30&133&0&3&4&1&2&5&1&198\\
+		ME1&1&0&0&14&2&1&0&0&0&0&18\\
+		EXC&0&0&0&0&12&0&0&0&0&0&12\\
+		ME2&0&1&1&2&1&21&0&0&0&0&26\\
+		ME3&1&4&3&1&0&2&67&0&0&0&78\\
+		VAC&0&1&0&0&0&0&0&1&0&0&2\\
+		POX&0&0&1&0&0&0&0&0&5&0&6\\
+		ERL&0&0&0&0&0&0&0&0&0&3&3\\
+		\hline
+		Total:&180&195&198&17&19&33&74&5&14&5&740\\
+		TPR:&0.839&0.744&0.672&0.824&0.632&0.636&0.905&0.2&0.357&0.6&0.641\\
+		\hline
+	\end{tabular}
+}
+	\caption[Yeast: Classification Tree without Feature Selection Confusion Matrix]{Yeast Dataset, Classification Tree with all features included, Accuracy = 74.6\%, MCC: 0.674 CEN: 0.273}
+	\label{tab:yeastctreebase}
+\end{table}
+
+	
+\end{frame}
+\begin{frame}{\currentname{: }CTree}
+	\begin{table}[h]
+	\resizebox{\linewidth}{!}{	
+		\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+			\hline
+			Class&MIT&NUC&CYT&ME1&EXC&ME2&ME3&VAC&POX&ERL&Total\\
+			MIT&131&13&9&0&0&1&2&0&2&0&158\\
+			NUC&8&87&26&0&1&0&1&2&0&0&125\\
+			CYT&33&87&158&0&3&2&4&2&4&0&293\\
+			ME1&1&0&0&13&2&1&0&0&0&0&17\\
+			EXC&1&0&0&1&11&1&0&0&0&0&14\\
+			ME2&5&2&1&2&2&26&0&0&0&1&39\\
+			ME3&1&5&3&1&0&2&67&0&0&0&79\\
+			VAC&0&1&0&0&0&0&0&1&0&0&2\\
+			POX&0&0&1&0&0&0&0&0&8&0&9\\
+			ERL&0&0&0&0&0&0&0&0&0&4&4\\
+			\hline
+			Total:&180&195&198&17&19&33&74&5&14&5&740\\
+			TPR:&0.728&0.446&0.798&0.765&0.579&0.788&0.905&0.2&0.571&0.8&0.658\\
+			\hline
+			
+			
+		\end{tabular}
+	}
+		\caption[Yeast: Classification Tree with Feature Selection Confusion Matrix]{Yeast Dataset, Classification Tree with feature selection, Accuracy = 68.4\%, MCC: 0.607 CEN: 0.290}
+		\label{tab:yeastctreefeatures}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }Hunter}
+	\begin{table}[h!]
+		
+	
+\resizebox{\linewidth}{!}{		\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+		\hline
+		Class&MIT&NUC&CYT&ME1&EXC&ME2&ME3&VAC&POX&ERL&Total\\
+		\hline
+		MIT&105&17&12&0&0&0&0&0&0&0&134\\
+		NUC&2&37&10&1&0&1&3&0&0&0&54\\
+		CYT&43&94&142&0&5&3&2&1&10&0&300\\
+		ME1&4&1&0&8&1&3&7&0&0&0&24\\
+		EXC&9&2&3&0&9&7&0&0&2&0&32\\
+		ME2&1&9&6&6&4&12&1&1&0&2&42\\
+		ME3&14&5&11&2&0&6&58&1&0&0&97\\
+		VAC&2&28&13&0&0&1&3&2&0&0&49\\
+		POX&0&0&1&0&0&0&0&0&2&0&3\\
+		ERL&0&2&0&0&0&0&0&0&0&3&5\\
+		\hline
+		Total:&180&195&198&17&19&33&74&5&14&5&740\\
+		TPR:&0.583&0.19&0.717&0.471&0.474&0.364&0.784&0.4&0.143&0.6&0.473\\
+		
+		\hline
+	\end{tabular}
+}\caption[Yeast: Hunter]{Yeast Dataset, Hunter Accuracy = 51.1\%, MCC: 0.413 CEN: 0.409}
+	\label{tab:yeasthunter}
+\end{table}
+
+\end{frame}
+
+
+\subsection{Cardiotocography (NSP)}
+\begin{frame}{\currentname{: }McNB Baseline}
+	\begin{table}[h]
+		\centering
+	\myresizetable{	\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			Class&Normal&Suspect&Pathologic&Total\\\hline
+			Normal&476&24&6&506\\
+			Suspect&37&408&2&447\\
+			Pathologic&28&7&75&110\\\hline
+			Total:&541&439&83&1063\\
+			TPR:&0.88&0.929&0.904&0.904\\
+			\hline
+		\end{tabular}
+}	\caption[Cardiotocography NSP: Multiclass Na\"ive Bayes without Feature Selection Confusion Matrix]{Cardio Dataset, NSP Labels Multiclass Na\"ive Bayes without feature selection included, Accuracy = 90.2\% MCC: 0.797 CEN: 0.186}
+		\label{tab:cardioNSPmcnbbase}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }McNB}
+\begin{table}[h]
+	\centering
+\myresizetable{	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		Class&Normal&Suspect&Pathologic&Total\\\hline
+		Normal&490&11&1&502\\
+		Suspect&28&427&0&455\\
+		Pathologic&23&1&82&106\\\hline
+		Total:&541&439&83&1063\\
+		TPR:&0.906&0.973&0.988&0.956\\
+		\hline
+	\end{tabular}
+}\caption[Cardiotocography NSP: Multiclass Na\"ive Bayes with Feature Selection Confusion Matrix]{Cardio Dataset, NSP Labels Multiclass Na\"ive Bayes with feature selection included, Accuracy = 94\%, MCC: 0.889 CEN: 0.116}
+	\label{tab:cardioNSPmcnb}
+\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }CTree Baseline}
+	\begin{table}[h!]
+		\centering
+	\myresizetable{	\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			Class&Normal&Suspect&Pathologic&Total\\\hline
+			Normal&519&31&9&559\\
+			Suspect&12&408&0&420\\
+			Pathologic&10&0&74&84\\\hline
+			Total:&541&439&83&1063\\
+			TPR:&0.959&0.929&0.892&0.927\\
+			\hline
+		\end{tabular}
+	}\caption[Cardiotocography NSP: Classification Tree without Feature Selection Confusion Matrix]{Cardio Dataset, NSP Labels Classification Tree without feature selection included, Accuracy=94.1\%, MCC: 0.967 CEN: 0.043}
+		\label{tab:cardioNSPctreebase}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }CTree}
+	\begin{table}[h]
+		\centering
+		\myresizetable{
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			Class&Normal&Suspect&Pathologic&Total\\\hline
+			Normal&514&34&3&551\\
+			Suspect&12&405&0&417\\
+			Pathologic&15&0&80&95\\\hline
+			Total:&541&439&83&1063\\
+			TPR:&0.95&0.923&0.964&0.946\\
+			
+			\hline
+		\end{tabular}
+		}\caption[Cardiotocography NSP: Classification Tree with Feature Selection Confusion Matrix]{Cardio Dataset, NSP Labels Classification Tree with feature selection included, Accuracy: 93.9\% MCC: 0.962 CEN: 0.051}
+		\label{tab:cardioNSPctree}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }Hunter}
+	\begin{table}[h!]
+		\centering
+	\myresizetable{	\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			Class&Normal&Suspect&Pathologic&Total\\\hline
+			Normal&197&77&10&284\\
+			Suspect&183&322&4&509\\
+			Pathologic&161&40&69&270\\\hline
+			Total:&541&439&83&1063\\
+			TPR:&0.364&0.733&0.831&0.643\\
+			\hline
+		\end{tabular}
+	}\caption[Cardiotocography NSP: Hunter Confusion Matrix]{Cardio Dataset, NSP Labels Hunter, Accuracy = 55\%, MCC: 0.333 CEN: 0.568}
+		\label{tab:cardioNSPHunter}
+	\end{table}
+	
+\end{frame}
+\subsection{Cardiotocography (Morphology)}
+\begin{frame}{\currentname{: }McNB Baseline}
+	\begin{table}[h!]
+		\centering
+\myresizetable{
+			\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+			\hline
+			Class&J&F&A&H&G&B&D&I&E&C&Total\\
+			\hline
+			J&99&0&2&0&0&0&0&0&0&0&101\\
+			F&0&169&0&0&0&1&0&0&0&1&171\\
+			A&2&0&189&0&0&2&0&0&0&1&194\\
+			H&0&0&0&47&0&0&0&0&0&0&47\\
+			G&0&1&0&1&121&0&0&0&0&0&123\\
+			B&0&5&9&0&2&276&1&0&1&0&294\\
+			D&0&0&0&0&0&0&40&0&0&0&40\\
+			I&2&0&0&0&0&0&0&30&0&0&32\\
+			E&2&0&0&0&0&0&0&0&38&0&40\\
+			C&0&0&0&0&0&0&0&0&0&21&21\\\hline
+			Total:&105&175&200&48&123&279&41&30&39&23&1063\\
+			TPR:&0.943&0.966&0.945&0.979&0.984&0.989&0.976&1&0.974&0.913&0.967\\
+			\hline
+		\end{tabular}
+		}\caption[Cardiotocography Morphology:  Na\"ive Bayes without Feature Selection Confusion Matrix]{Cardio Dataset Morphological Labels Multiclass Na\"ive Bayes without feature selection, Accuracy= 96.9\% MCC: 0.963, CEN: 0.05}
+		\label{tab:cardiomorphmcnbbase}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }McNB}
+	\begin{table}[h!]
+		\centering
+	\myresizetable{
+			\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+			\hline
+			Class&J&F&A&H&G&B&D&I&E&C&Total\\
+			\hline
+			J&100&0&1&0&0&0&0&0&0&0&101\\
+			F&0&171&0&0&0&0&0&0&0&0&171\\
+			A&0&0&187&0&1&4&0&0&1&1&194\\
+			H&0&0&0&47&0&0&0&0&0&0&47\\
+			G&0&1&0&0&122&0&0&0&0&0&123\\
+			B&0&4&2&0&1&285&1&0&1&0&294\\
+			D&0&0&0&0&0&0&40&0&0&0&40\\
+			I&0&0&0&0&0&0&0&32&0&0&32\\
+			E&0&0&0&0&0&0&0&0&40&0&40\\
+			C&0&0&0&0&0&0&0&0&0&21&21\\
+			\hline
+			Total:&100&176&190&47&124&289&41&32&42&22&1063\\
+			TPR:&1&0.972&0.984&1&0.984&0.986&0.976&1&0.952&0.955&0.981\\
+			
+			\hline
+		\end{tabular}
+	}\caption[Cardiotocography Morphology:  Na\"ive Bayes without Feature Selection Confusion Matrix]{Cardio Dataset Morphological Labels Multiclass Na\"ive Bayes with feature selection, Accuracy = 98.3\%, MCC: 0.98, CEN: 0.03}
+		\label{tab:cardiomorphmcnb}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }CTree Baseline}
+	\begin{table}[h!]
+		\centering
+		\myresizetable{\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+			\hline
+			Class&J&F&A&H&G&B&D&I&E&C&Total\\
+			\hline
+			J&97&0&2&0&0&0&0&0&2&0&101\\
+			F&0&159&0&1&5&6&0&0&0&0&171\\
+			A&4&0&183&0&0&5&0&0&1&1&194\\
+			H&0&0&0&42&2&0&1&0&0&2&47\\
+			G&0&1&1&0&120&1&0&0&0&0&123\\
+			B&0&0&1&0&0&286&3&0&3&1&294\\
+			D&0&1&0&0&0&1&38&0&0&0&40\\
+			I&3&0&1&0&0&0&0&28&0&0&32\\
+			E&2&0&5&0&0&1&0&0&31&1&40\\
+			C&0&0&2&0&0&0&0&0&0&19&21\\\hline
+			Total:&106&161&195&43&127&300&42&28&37&24&1063\\
+			TPR:&0.915&0.988&0.938&0.977&0.945&0.953&0.905&1&0.838&0.792&0.925\\
+			\hline
+		\end{tabular}
+		}\caption[Cardiotocology Morphology: Classification Tree  Confusion Matrix]{Cardio Dataset, Morphological Labels Classification Tree without feature selection included, Accuracy = 94.3\% MCC: 0.933, CEN: 0.086}
+		\label{tab:cardiomorphctreebase}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }CTree}
+	\begin{table}
+		\centering	
+	\myresizetable{	\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+			\hline
+			Class&J&F&A&H&G&B&D&I&E&C&Total\\
+			\hline
+			J&98&0&0&0&0&0&0&0&2&1&101\\
+			F&0&161&1&1&1&7&0&0&0&0&171\\
+			A&6&0&178&0&0&4&0&1&3&2&194\\
+			H&0&0&2&44&0&0&1&0&0&0&47\\
+			G&0&4&1&0&118&0&0&0&0&0&123\\
+			B&0&1&3&0&0&283&3&0&4&0&294\\
+			D&0&1&0&0&0&0&39&0&0&0&40\\
+			I&3&0&0&0&0&0&0&29&0&0&32\\
+			E&1&0&5&0&0&0&0&0&33&1&40\\
+			C&0&0&2&0&0&0&0&0&0&19&21\\\hline
+			Total:&108&167&192&45&119&294&43&30&42&23&1063\\
+			TPR:&0.907&0.964&0.927&0.978&0.992&0.963&0.907&0.967&0.786&0.826&0.922\\
+			\hline
+		\end{tabular}
+		}\caption[Cardiotocology Morphology: Classification Tree Confusion Matrix]{Cardio Dataset, Morphological Labels Classification Tree with feature selection included accuracy: 94.3\% MCC: 0.931, CEN: 0.086}
+		\label{tab:cardiomorphctree}
+	\end{table}
+	
+\end{frame}
+\begin{frame}{\currentname{: }Hunter}
+	\begin{table}[h!]
+		\centering
+\myresizetable{		\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+			\hline
+			Class&J&F&A&H&G&B&D&I&E&C&Total\\\hline
+			J&28&19&0&1&21&0&3&2&27&0&101\\
+			F&0&5&0&0&2&163&1&0&0&0&171\\
+			A&16&86&10&0&33&5&1&40&1&2&194\\
+			H&0&1&0&38&4&3&0&1&0&0&47\\
+			G&0&43&0&1&65&3&10&1&0&0&123\\
+			B&2&3&0&0&2&284&1&2&0&0&294\\
+			D&0&0&0&0&0&40&0&0&0&0&40\\
+			I&0&6&0&16&0&0&0&10&0&0&32\\
+			E&9&7&0&0&12&0&0&8&4&0&40\\
+			C&0&11&0&0&3&0&1&6&0&0&21\\\hline
+			Total:&55&181&10&56&142&498&17&70&32&2&1063\\
+			TPR:&0.509&0.028&1&0.679&0.458&0.57&0&0.143&0.125&0&0.351\\
+			\hline
+		\end{tabular}
+	}\caption[Cardiotocography Morphology: Hunter Confusion Matrix]{Cardio Dataset Morphological Labels Multiclass Na\"ive Bayes with feature selection, Accuracy = 41.7\%, MCC: -0.078, CEN: 0.49}
+		\label{tab:cardiomorphhunter}
+	\end{table}
+	
+\end{frame}
+
 \subsection{Bach's Chorales}
+\begin{frame}
+	For Bach, with 102 classes, the confusion matrix is not easily repackaged.  It's on Github as a spreadsheet.  Instead, we'll summarize with the metrics.
+\end{frame}
+\begin{frame}{\currentname{: }McNB Baseline}
+	\begin{tabular}{|r|c|c|c|c|}
+		\hline
+		Classifier&Accuracy&\(\overline{A}\)&MCC&CEN\\
+		\hline
+		CTree Baseline&0.709&0.244&0.694&0.18\\
+		CTree &0.679&0.270 & 0.662 & 0.192\\
+		McNB Baseline & 0.794 & 0.662 & 0.785&0.139\\
+		McNB & 0.803 & 0.653 & 0.794 & 0.136\\
+		Hunter & - & - & - & -\\
+		Original Paper & 0.75 & - & - & -\\\hline
+	\end{tabular}
+\end{frame}
+\subsection{Population Stats}
+\begin{frame}{Population Stats}
+\begin{itemize}
+	\item With evolution, it's not only the fittest that survive.
+	\item Entire population should trend toward greater fitness
+	\item Otherwise, there's a fundamental failure of the GA.
+\end{itemize}	
+\end{frame}
+
+\begin{frame} {Na\"ive Bayes, Bach}
+	\begin{figure}
+		\centering
+		\includegraphics[width=.95\linewidth]{figures/png/fitnessBachMcNBBase}
+		\label{fig:fitnessbachmcnbbase}
+	\end{figure}
+	
+\end{frame}
+
+\begin{frame} {Classification Tree, Cardiotocography (NSP)}
+	\begin{figure}
+		\centering
+		\includegraphics[width=.95\linewidth]{figures/png/fitnessCardioNSPCTree}
+		\label{fig:fitnessCardioNSPCtree}
+	\end{figure}
+	
+\end{frame}
+
+\begin{frame} {Hunter, Cardiotocography (NSP)}
+	\begin{figure}
+		\centering
+		\includegraphics[width=.95\linewidth]{figures/png/fitnessCardioNSPHunter}
+		\label{fig:fitnesscardionsphunter}
+	\end{figure}
+	
+\end{frame}
+
+\begin{frame} {Na\"ive Bayes, Yeast}
+	\begin{figure}
+		\centering
+		\includegraphics[width=.95\linewidth]{figures/png/yeastmcnb}
+		\label{fig:fitnessyeastmcnb}
+	\end{figure}
+	
+\end{frame}
+
+\begin{frame} {Hunter, Yeast}
+	\begin{figure}
+		\centering
+		\includegraphics[width=.95\linewidth]{figures/png/yeastHunter}
+		\label{fig:fitnessYeastHunter}
+	\end{figure}
+	
+\end{frame}
+
 
 \section{Discussion}
+\begin{frame}{Conclusions}
+	\begin{itemize}
+		\item Hunters BAD
+		\item Everything else good
+		\item Sleep now
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	In the beginning, we imagined we were testing something like this:\\
+		\includegraphics[width=0.4\linewidth]{figures/png/Canoe}\
+	vs
+	\includegraphics[width=0.4\linewidth]{figures/png/Kayak}
+	
+\end{frame}
+\begin{frame}
+	But it was more like this:\\
+	\includegraphics[width=0.4\linewidth]{figures/png/Speedboat}\
+	vs
+	\pause
+	\includegraphics[width=0.4\linewidth]{figures/png/Bucket}
+\end{frame}
+
+\begin{frame}{Pitfalls}
+\begin{itemize}
+	\item Breeding Hunters is too CPU intensive, even with smaller populations.
+	\item ``Toolbox'' not robust enough for Hunters
+\end{itemize}
+\end{frame}
+\begin{frame}{Hunter Further research}
+	\begin{itemize}
+		\item Refine breeding, perhaps only include cellular crossover at some probability instead of always
+		\item Do more than just boolean decisions (like building distributions or leveraging denoising auto-encoders)
+		\item Increase selective pressure
+		\item Experiment with other metrics of fitness
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Other Further research}
+	\begin{itemize}
+		\item Ensemble meta-GA for tuning ensemble of GA optimized classifiers
+		\item Explore Genetic Programming
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Questions?}
+\end{frame}
+
+\section{Bibliography}
+\begin{frame}[allowframebreaks]
+	\frametitle{Bibliography}
+	\bibliography{references/references-dissertation} % references.bib included in the references directory
+	
+\end{frame}
 \end{document}
