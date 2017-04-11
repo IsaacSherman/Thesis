@@ -17,6 +17,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{nameref}
+\usepackage{multicol}
 \makeatletter
 \newcommand*{\currentname}{\@currentlabelname}
 \makeatother
@@ -27,24 +28,29 @@
 {
 	\begin{frame}
 		\frametitle{Outline}
+		\begin{multicols}{2}
 		\tableofcontents[currentsection, subsectionstyle = show/shaded/hide, subsubsectionstyle = hide]
+	\end{multicols}
 	\end{frame}
 }
 
 \AtBeginSubsection[]
 {
 	\begin{frame}
-		\frametitle{Outline}
+		\frametitle{Outline}\begin{multicols}{2}
 		\tableofcontents[currentsection, 
 		subsectionstyle = show/shaded/hide, subsubsectionstyle = show/shaded/hide]
-	\end{frame}
+\end{multicols}	
+\end{frame}
 }
 \AtBeginSubsubsection[]{
 		\begin{frame}
 		\frametitle{Outline}
+		\begin{multicols}{2}
 		\tableofcontents[sectionstyle=hide, 
 		currentsubsection,
 		subsubsectionstyle = show/shaded/hide]
+\end{multicols}
 	\end{frame}
 }
 
@@ -62,7 +68,9 @@
 
 \begin{frame}
 	\frametitle{Outline}
+	\begin{multicols}{2}
 	\tableofcontents
+\end{multicols}
 \end{frame}
 
 \section{Introduction}
@@ -117,6 +125,38 @@ Therefore, \\
 	is $\frac{1}{|68-72|} = 0.25$
 \end{frame}
 
+\begin{frame}{Crossover}
+	
+	Given 2 solutions A and B: \\
+	\begin{tabular}{|c|c|c|c|c|c|c|c|}
+		\hline
+		\textit{A} & \textit{1001} & \textit{10} & \textit{0011} & \textit{11} & \textit{1001} & \textit{00} & \textit{0111}\\ 
+		\textbf{B} & \textbf{0011} & \textbf{01} & \textbf{1000} & \textbf{01} & \textbf{0001} & \textbf{10} & \textbf{1001}\\
+		\hline
+	\end{tabular}\\\vspace{3mm}
+
+	One point crossover:\\
+	\begin{tabular}{|c|c|c|c|c|c|c|c|}
+		\hline
+		\textit{A'} & \textit{1001} & \textit{1}\textbf{1} & \textbf{1000} & \textbf{01} & \textbf{0001} & \textbf{10} & \textbf{1001}\\ 
+		\textbf{B'} & \textbf{0011} & \textbf{0}\textit{0} & \textit{0011} & \textit{11} & \textit{1001} & \textit{00} & \textit{0111}\\
+		\hline
+	\end{tabular}\\\vspace{3mm}
+
+Two Point Crossover:\\
+
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+	\hline
+	\textit{A'} & \textit{1001} & \textit{10} & \textit{00}\textbf{00}  & \textbf{01} & \textbf{0001} & \textbf{10} & \textbf{1}\textit{111}\\ 
+	\textbf{B'} & \textbf{0011} & \textbf{01} & \textbf{10}\textit{11} & \textit{11} & \textit{1001} & \textit{00} & \textit{0}\textbf{001}\\
+	\hline
+\end{tabular}\\\vspace{3mm}
+
+Uniform cross is similar, but any number of crosses possible.
+
+
+\end{frame}
+
 \begin{frame} \frametitle{Motivation}
 \begin{itemize}
 	\item Where do GAs fit in the greater scheme of pattern recognition?
@@ -127,8 +167,8 @@ Therefore, \\
 \end{frame}
 \section{Methodology}
 
-\begin{frame}
-
+\begin{frame}{Methodology}
+In this section, we'll discuss the ways we attempt to answer those previous questions.
 \end{frame}
 
 \subsection{Program Flow}
@@ -148,21 +188,24 @@ Therefore, \\
 	Categorical feature types:
 	\begin{align*}
 	X &= {X_\mathbb{R} \cup X_{cat} \cup X_{bool}}\\
-	X_\mathbb{R} &= \{x_1, x_2, ... x_n\}\\
-	X_{cat} &= \{x_{n+1}, x_{n+2}, ... x_c\}\\%there are some number of categorical columns,
-	%each of which have a number of categoricals in them.
-	X_{bool} &= \{x_{c+1}, x_{c+2,} ... x_b\} \\
-	1&\leq i \leq c-n\\
-	L &= \{x_i|x_i\epsilon X_{cat}\}\\%Set of categoricals
-	C_\ell &= \{x, i|  x\epsilon X \wedge x_{n+i} = \ell\epsilon L \}\\%set of samples
-	%belonging to categoricals
-	R(\ell) &= \frac{\sum_{x\epsilon C_\ell}\sum_{j=1}^{n}x_j}{|C_\ell|n}
+X_\mathbb{R} &= \{\textbf{x}_1, \textbf{x}_2, ... \textbf{x}_n\}\\
+X_{cat} &= \{\textbf{x}_{n+1}, \textbf{x}_{n+2}, ... \textbf{x}_c\}\\%there are some number of categorical columns,
+%each of which have a number of categoricals in them.
+X_{bool} &= \{\textbf{x}_{c+1}, \textbf{x}_{c+2,} ... \textbf{x}_b\} \\
+1&\leq i \leq c-n\\
+L &= \{x_i|x_i\epsilon X_{cat}\}\\%Set of categoricals
+C_\ell &= \{\textbf{x}, i|  \textbf{x}\epsilon X \wedge \textbf{x}_{n+i} = \ell\epsilon L \}
 	\end{align*}
 	
 \end{frame}
 \begin{frame}
-	\frametitle{Booleans}
-	True is converted to .75, false to .25.
+	\frametitle{Categoricals And Booleans}
+	That preamble allows us to calculate the following
+	$$
+	R(\ell) = \frac{\sum_{\textbf{x}\epsilon C_\ell}\sum_{j=1}^{n}x_j}{|C_\ell|n}
+	$$
+	\\Finally, for Boolean variables, 
+	True is converted to .75, False to .25.
 \end{frame}
 
 
@@ -336,7 +379,7 @@ GenerateNextGeneration(P):
 \begin{frame}
 	\frametitle{Hunters}
 		\begin{itemize}
-			\item Hunters are made up of 1 or more Chromosomes
+		\item Hunters are made up of 1 or more Chromosomes
 		\item Chromosomes are made up of 1 or more Cells
 		\item Cells form the bulk of the genome of the Hunter
 		\item Fitness is a modified $\overline{A}$
@@ -367,7 +410,7 @@ Cells comprise the following:
 	\textbf{Functions} \((F_i)\) are simply looking at features, looking at the values of the normalized dataset.  \\
 	\textbf{Limits} are a binary number shifted to the -8th power.  It allows for values between 0 and \(\frac{511}{512}\).  If the upper limit \((L_u)\) is lower than the lower limit\((L_\ell)\), the bits are swapped.\\
 	The \textbf{Not Flag} (N) reverses the vote of the cell. \\
-	So when a cell votes, it returns \(V= N\oplus  (L_\ell \leq F_i \leq L_u)\)\\ 
+	So when a cell votes, it returns \(V(x)= N\oplus  (L_\ell \leq F_i(x) \leq L_u)\)\\ 
 	The Join Bit indicates whether to include the next cell in the voting process. 
 \end{frame}
 \begin{frame}{Chromosomes}
@@ -379,14 +422,6 @@ Cells comprise the following:
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Chromosomes}
-	Chromosomes comprise the following:
-	\begin{itemize}
-		\item Class Bits, \(\lceil log_2(\Omega)\rceil\) bits where \(\Omega\) is the number of classes
-		\item 2 Affinity Bits, discussed in detail later
-		\item A List of Cells
-	\end{itemize}
-\end{frame}
 
 \begin{frame}{Hunters}
 	Hunters are merely a housing for a list of Chromosomes.  They don't contain any genetic information of their own.  However, breeding operations and fitness is calculated at the Hunter level.
@@ -842,7 +877,7 @@ Cells comprise the following:
 			
 			\hline
 		\end{tabular}
-	}\caption[Cardiotocography Morphology:  Na\"ive Bayes without Feature Selection Confusion Matrix]{Cardio Dataset Morphological Labels Multiclass Na\"ive Bayes with feature selection, Accuracy = 98.3\%, MCC: 0.98, CEN: 0.03}
+	}\caption[Cardiotocography Morphology:  Na\"ive Bayes with Feature Selection Confusion Matrix]{Cardio Dataset Morphological Labels Multiclass Na\"ive Bayes with feature selection, Accuracy = 98.3\%, MCC: 0.98, CEN: 0.03}
 		\label{tab:cardiomorphmcnb}
 	\end{table}
 	
@@ -919,16 +954,40 @@ Cells comprise the following:
 			TPR:&0.509&0.028&1&0.679&0.458&0.57&0&0.143&0.125&0&0.351\\
 			\hline
 		\end{tabular}
-	}\caption[Cardiotocography Morphology: Hunter Confusion Matrix]{Cardio Dataset Morphological Labels Multiclass Na\"ive Bayes with feature selection, Accuracy = 41.7\%, MCC: -0.078, CEN: 0.49}
+	}\caption[Cardiotocography Morphology: Hunter Confusion Matrix]{Cardio Dataset Morphological Labels Hunter, Accuracy = 41.7\%, MCC: -0.078, CEN: 0.49}
 		\label{tab:cardiomorphhunter}
 	\end{table}
 	
 \end{frame}
 
 \subsection{Bach's Chorales}
-\begin{frame}
-	For Bach, with 102 classes, the confusion matrix is not easily repackaged.  It's on Github as a spreadsheet.  Instead, we'll summarize with the metrics.
+{\currentname{: } CTree Baseline}
+	\centering
+	\includegraphics[width=0.95\linewidth]{figures/png/bachCTreeBaseHeat}
+	\label{fig:bachctreebaseheat}
+\begin{frame}{\currentname{: } CTree}
+		\centering
+		\includegraphics[width=0.95\linewidth]{figures/png/bachCTreeHeat}
+		\label{fig:bachctreeheat}
+	\end{frame}
+\begin{frame}{\currentname{: } McNB Baseline}
+		\centering
+		\includegraphics[width=0.95\linewidth]{figures/png/bachMcNBBaseHeat}
+		\label{fig:bachmcnbbaseheat}
+		
 \end{frame}
+\begin{frame}{\currentname{: } McNB}
+		\centering
+		\includegraphics[width=0.95\linewidth]{figures/png/bachMcNBHeat}
+			\label{fig:bachmcnbheat}
+\end{frame}
+\begin{frame}{\currentname{: } Hunter}
+		\centering
+		\includegraphics[width=0.95\linewidth]{figures/png/bachHunterHeatmap}
+		\label{fig:bachhunter}
+	
+\end{frame}
+
 \begin{frame}{\currentname{: }McNB Baseline}
 	\begin{tabular}{|r|c|c|c|c|}
 		\hline
@@ -938,7 +997,7 @@ Cells comprise the following:
 		CTree &0.679&0.270 & 0.662 & 0.192\\
 		McNB Baseline & 0.794 & 0.662 & 0.785&0.139\\
 		McNB & 0.803 & 0.653 & 0.794 & 0.136\\
-		Hunter & - & - & - & -\\
+		Hunter & - & - & 0.196 & 0.307\\
 		Original Paper & 0.75 & - & - & -\\\hline
 	\end{tabular}
 \end{frame}
@@ -959,7 +1018,6 @@ Cells comprise the following:
 	\end{figure}
 	
 \end{frame}
-
 \begin{frame} {Classification Tree, Cardiotocography (NSP)}
 	\begin{figure}
 		\centering
@@ -1000,14 +1058,23 @@ Cells comprise the following:
 \section{Discussion}
 \begin{frame}{Conclusions}
 	\begin{itemize}
-		\item Hunters BAD
-		\item Everything else good
-		\item Sleep now
+		\item Where do GAs fit in the greater scheme of pattern recognition?
+		\begin{itemize}
+			\item Our findings suggest they should primarily perform optimization tasks on theoretically based classifiers.
+		\end{itemize}
+		\item Given primitive mechanics, can they match or exceed theoretically-based methods?
+		\begin{itemize}
+			\item Our data does not suggest that they can.
+		\end{itemize}
+	\item Can we build a generic, universal genetic algorithm for classification?
+		\begin{itemize}
+			\item Yes, our Hunter class is such an algorithm.
 	\end{itemize}
+\end{itemize}	
 \end{frame}
 
 \begin{frame}
-	In the beginning, we imagined we were testing something like this:\\
+	In the beginning, we imagined we were executing something like this:\\
 		\includegraphics[width=0.4\linewidth]{figures/png/Canoe}\
 	vs
 	\includegraphics[width=0.4\linewidth]{figures/png/Kayak}
@@ -1047,6 +1114,16 @@ Cells comprise the following:
 \end{frame}
 
 \section{Bibliography}
+
+\begin{frame}{Picture Credits: The ones we didn't make with data}
+	\begin{itemize}
+		\item Canoe: \url{http://penobscotmarinemuseum.org/pbho-1/collection/birchbark-canoe}
+		\item Kayak: \url{https://www.seatrek.com/rentals/}
+		\item Kittens: \url{https://www.reddit.com/r/aww/comments/ux8i4/a_barrel_of_monkeys_how_about_a_bucket_of_kittens/}
+		\item Speedboat: \url{http://www.musclehorsepower.com/1-7m-zr48-corvette-carbon-fiber-powerboat-2700-hp/}
+	\end{itemize}
+\end{frame}
+
 \begin{frame}[allowframebreaks]
 	\frametitle{Bibliography}
 	\bibliography{references/references-dissertation} % references.bib included in the references directory

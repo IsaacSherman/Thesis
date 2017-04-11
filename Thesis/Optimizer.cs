@@ -476,7 +476,7 @@ protected static List<int> extractNumericLabels(String blockString)
             double wrongPositives=0;//calls that are incorrect, but not calling a false alarm or missed call
             double[] sumOfRows = new double[OptoGlobals.NumberOfClasses], sumOfCols = new double[OptoGlobals.NumberOfClasses],
                 accuracyByClass = new double[OptoGlobals.NumberOfClasses];
-
+            
             for (int row = 0; row < OptoGlobals.NumberOfClasses; ++row)
             {
 

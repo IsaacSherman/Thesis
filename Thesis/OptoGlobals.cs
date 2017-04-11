@@ -83,12 +83,12 @@ namespace EvoOptimization
             NumberOfFeatures = xCols.Count;
             TrainingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, catBlackList, boolBlackList, false, false) as List<List<String>>;
             TrainingYString = Util.TwoDimListToSmoothArray(TrainingYRaw);
-            tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, trXPath, catBlackList, boolBlackList, true, true) as Object[];
+            tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, teXPath, catBlackList, boolBlackList, true, true) as Object[];
             TestingXRaw = tempX[0] as List<List<Double>>;
             TestingXBools = tempX[1] as List<List<Boolean>>;
             TestingXCats = tempX[2] as List<List<String>>;
 
-            TestingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, trYPath, catBlackList, boolBlackList, false, true) as List<List<String>>;
+            TestingYRaw = readInDataset(ref yCols, ref yIgnore, yBlacklist, ref BooleanColumns, CategoricalColumns, teYPath, catBlackList, boolBlackList, false, true) as List<List<String>>;
             TestingYString = Util.TwoDimListToSmoothArray(TestingYRaw);
 
 
@@ -139,6 +139,8 @@ namespace EvoOptimization
                 throw new InvalidCastException();
             }
             }
+
+        
 
         internal delegate List<Double> NormFunction(List<Double> x, List<List<Double>> stats);
 
@@ -242,7 +244,7 @@ namespace EvoOptimization
         /// <param name="isXDataset">If an X dataset, will parse data to doubles before returning.  Otherwise, will return as strings</param>
         /// <param name="ignoreFirstLine"></param>
         /// <returns>boxed 2d list, either strings or doubles</returns>
-        private static Object readInDataset(ref HashSet<int> cols, ref HashSet<int> ignoreList, bool blackList, ref HashSet<int> BoolCols, HashSet<int> CatCols, string filePath, bool catBlacklist, bool boolBlacklist, bool isXDataset, bool ignoreFirstLine)
+        public static Object readInDataset(ref HashSet<int> cols, ref HashSet<int> ignoreList, bool blackList, ref HashSet<int> BoolCols, HashSet<int> CatCols, string filePath, bool catBlacklist, bool boolBlacklist, bool isXDataset, bool ignoreFirstLine)
         {
             using (StreamReader fin = new StreamReader(new BufferedStream(new FileStream(filePath, FileMode.Open))))
             {
@@ -690,5 +692,28 @@ namespace EvoOptimization
         public static List<double[]> DaedalusTrainingSet, DaedalusValidationSet;
         public static List<int> DaedalusTrainingY, DaedalusValidationY;
 
+
+        internal static void readInSpecialTestSet()
+        {
+            teXPath = "../../../Data/Hackathon/test.csv";
+
+            Object[] tempX = readInDataset(ref xCols, ref xIgnore, xBlacklist, ref BooleanColumns, CategoricalColumns, teXPath, true, false, true, false) as Object[];
+            TestingXRaw = tempX[0] as List<List<Double>>;
+            TestingXBools = tempX[1] as List<List<Boolean>>;
+            TestingXCats = tempX[2] as List<List<String>>;
+            NumberOfFeatures = xCols.Count;
+
+            TestingXNormed = NormalizeArray(TestingXRaw, SqueezedMinMaxNorm, false);
+
+            Dictionary<String, List<Double>> meanSumDict = new Dictionary<string, List<double>>();
+            gatherCategoricalMeans(TestingXNormed, TestingXCats, meanSumDict);
+            meanSumsToCatValues(meanSumDict);
+
+            DaedalusValidationSet = OptoGlobals.setFromCollection(OptoGlobals.TestingXNormed, OptoGlobals.TestingXCats, OptoGlobals.TestingXBools);
+
+
+            OptoGlobals.TestingXNormed = Util.ListArrayToListList(DaedalusValidationSet);
+
+        }
     }
 }

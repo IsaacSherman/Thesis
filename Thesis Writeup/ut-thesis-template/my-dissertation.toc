@@ -12,8 +12,8 @@
 \contentsline {subparagraph}{And Quick to Anger}{7}{section*.26}
 \contentsline {subparagraph}{Toolset}{8}{section*.27}
 \contentsline {paragraph}{Theoretic Underpinnings}{9}{section*.28}
-\contentsline {paragraph}{Motivations}{12}{section*.29}
-\contentsline {subparagraph}{Priors}{13}{section*.30}
+\contentsline {paragraph}{Motivations}{13}{section*.29}
+\contentsline {subparagraph}{Priors}{14}{section*.30}
 \contentsline {paragraph}{Literature Review}{14}{section*.31}
 \contentsline {subparagraph}{Hybrid Approach}{14}{section*.32}
 \contentsline {subparagraph}{Purist}{15}{section*.33}
@@ -25,12 +25,12 @@
 \contentsline {paragraph}{CTree}{27}{section*.36}
 \contentsline {paragraph}{Optimizers}{29}{section*.37}
 \contentsline {paragraph}{Evolver}{30}{section*.38}
-\contentsline {paragraph}{OptimizerProgram}{32}{section*.39}
+\contentsline {paragraph}{OptimizerProgram}{33}{section*.39}
 \contentsline {section}{\numberline {2.4}Purist Approach}{33}{section.2.4}
-\contentsline {paragraph}{Cells}{33}{section*.40}
+\contentsline {paragraph}{Cells}{34}{section*.40}
 \contentsline {paragraph}{Chromosome}{35}{section*.41}
 \contentsline {paragraph}{Hunter}{35}{section*.42}
-\contentsline {paragraph}{Crossover}{36}{section*.43}
+\contentsline {paragraph}{Crossover}{37}{section*.43}
 \contentsline {paragraph}{Merger}{39}{section*.44}
 \contentsline {paragraph}{Fitness}{41}{section*.47}
 \contentsline {paragraph}{Daedalus}{42}{section*.48}
@@ -44,8 +44,8 @@
 \contentsline {paragraph}{CTree Baseline}{51}{section*.56}
 \contentsline {paragraph}{CTree w/ feature selection}{52}{section*.58}
 \contentsline {paragraph}{McNB Baseline}{52}{section*.60}
-\contentsline {paragraph}{McNB w/ feature selection:}{54}{section*.63}
-\contentsline {paragraph}{Hunter}{54}{section*.65}
+\contentsline {paragraph}{McNB w/ feature selection:}{53}{section*.62}
+\contentsline {paragraph}{Hunter}{54}{section*.64}
 \contentsline {subsection}{\numberline {3.2.2}Cardiotocography NSP}{55}{subsection.3.2.2}
 \contentsline {paragraph}{CTree Baseline}{55}{section*.66}
 \contentsline {paragraph}{CTree w/ Feature Selection}{55}{section*.68}
@@ -54,22 +54,19 @@
 \contentsline {paragraph}{Hunter}{56}{section*.74}
 \contentsline {subsection}{\numberline {3.2.3}Cardiotocography Morphology}{57}{subsection.3.2.3}
 \contentsline {paragraph}{CTree Baseline}{57}{section*.76}
-\contentsline {paragraph}{CTree w/ Feature Selection}{57}{section*.78}
-\contentsline {paragraph}{McNB Baseline}{57}{section*.80}
+\contentsline {paragraph}{CTree w/ Feature Selection}{58}{section*.78}
+\contentsline {paragraph}{McNB Baseline}{58}{section*.80}
 \contentsline {paragraph}{McNB w/ Feature Selection}{58}{section*.82}
 \contentsline {paragraph}{Hunter}{58}{section*.84}
-\contentsline {subsection}{\numberline {3.2.4}Bach's Chorales}{58}{subsection.3.2.4}
-\contentsline {paragraph}{CTree Baseline}{59}{section*.86}
-\contentsline {paragraph}{CTree w/ Feature Selection}{60}{section*.87}
-\contentsline {paragraph}{McNB Baseline}{61}{section*.88}
-\contentsline {paragraph}{McNB w/ Feature Selection}{61}{section*.89}
-\contentsline {paragraph}{Hunter}{61}{section*.90}
-\contentsline {section}{\numberline {3.3}Final Thoughts}{61}{section.3.3}
-\contentsline {chapter}{\numberline {4}Conclusions}{63}{chapter.4}
-\contentsline {chapter}{Bibliography}{66}{section*.91}
-\contentsline {chapter}{\numberline {A}Hunter Genomes and Explanations}{73}{appendix.A}
-\contentsline {section}{\numberline {A.1}Yeast}{73}{section.A.1}
-\contentsline {section}{\numberline {A.2}Cardio NSP}{81}{section.A.2}
-\contentsline {section}{\numberline {A.3}Cardio Morphology}{81}{section.A.3}
-\contentsline {section}{\numberline {A.4}Bach}{81}{section.A.4}
-\contentsline {chapter}{Vita}{82}{section*.93}
+\contentsline {subsection}{\numberline {3.2.4}Bach's Chorales}{59}{subsection.3.2.4}
+\contentsline {paragraph}{CTree Baseline}{61}{figure.caption.87}
+\contentsline {paragraph}{CTree w/ Feature Selection}{62}{figure.caption.89}
+\contentsline {paragraph}{McNB Baseline}{62}{figure.caption.91}
+\contentsline {paragraph}{McNB w/ Feature Selection}{64}{figure.caption.93}
+\contentsline {paragraph}{Hunter}{64}{figure.caption.95}
+\contentsline {section}{\numberline {3.3}Final Thoughts}{66}{section.3.3}
+\contentsline {chapter}{\numberline {4}Conclusions}{68}{chapter.4}
+\contentsline {chapter}{Bibliography}{71}{section*.97}
+\contentsline {chapter}{\numberline {A}Hunter Genomes and Explanations}{78}{appendix.A}
+\contentsline {section}{\numberline {A.1}Yeast}{78}{section.A.1}
+\contentsline {chapter}{Vita}{86}{section*.99}

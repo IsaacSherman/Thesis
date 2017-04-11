@@ -25,7 +25,7 @@ namespace EvoOptimization
 
                 OptoGlobals.IsDebugMode = false;
             // Create the MATLAB instance 
-            String GlobalPath = "../../../Data/Cardio/DataSetConfigNSP.csv";
+            String GlobalPath = "../../../Data/Hackathon/DataSetConfigSquish.csv";
             int maxGen = 100, saveAfterGens = 25, popSize = 50, baseCompUB = 10, maxComp = 2000;
 
             if (args.Length >= 2) { GlobalPath = args[1]; }
@@ -64,7 +64,7 @@ namespace EvoOptimization
             double[] poot =  { OptoGlobals.RNG.NextDouble(), OptoGlobals.RNG.NextDouble(), OptoGlobals.RNG.NextDouble(), OptoGlobals.RNG.NextDouble(), OptoGlobals.RNG.NextDouble(),
             OptoGlobals.RNG.NextDouble(),OptoGlobals.RNG.NextDouble(),OptoGlobals.RNG.NextDouble(),OptoGlobals.RNG.NextDouble(),OptoGlobals.RNG.NextDouble()};
             object pootwrap = poot;
-            Hunter x = new Hunter();
+            //Hunter x = new Hunter();
             double nerp;
             Daedalus D = new Daedalus();
             //x.Vote(pootwrap, out nerp);
@@ -73,13 +73,13 @@ namespace EvoOptimization
             decisionTreeProgram.MaxGen = maxGen;
             decisionTreeProgram.SaveAfterGens = saveAfterGens;
             decisionTreeProgram.PopSize = popSize;
-
+            decisionTreeProgram.OutputBaseline = false;
             MulticlassNBOptimizer.MulticlassNBOptimizer.RewriteBits();
             EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer> naiveBayesProgram = new EvoOptimizerProgram<MulticlassNBOptimizer.MulticlassNBOptimizer>();
             naiveBayesProgram.MaxGen = maxGen;
             naiveBayesProgram.SaveAfterGens = saveAfterGens;
             naiveBayesProgram.PopSize = popSize;
-
+            naiveBayesProgram.OutputBaseline = false;
       
             //Configure the program here- set things like multi-threading, etc, if desired
             
@@ -97,11 +97,18 @@ namespace EvoOptimization
             naiveBayesProgram.ConfigureAndRun();
             
             decisionTreeProgram.ConfigureAndRun();
+
+            /*MulticlassNBOptimizer.MulticlassNBOptimizer bestNb = new MulticlassNBOptimizer.MulticlassNBOptimizer("1101110111010101001010100000101111000111000010101110101011011111111100011011100");
+            bestNb.Eval();
             
-
-
+            OptoGlobals.readInSpecialTestSet();
+            
+            bestNb.Eval();
+            using(StreamWriter fout = new StreamWriter(new FileStream("mysubmission.csv", FileMode.Create))){
+                bestNb.DumpLabelsToStream(fout);         
+            }
             SerializationChecks();
-
+*/
         }
 
         private static void SerializationChecks()

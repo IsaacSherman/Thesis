@@ -15,6 +15,13 @@
 \contentsline {figure}{\numberline {3.2}{\ignorespaces T-SNE visualization of Cardio dataset, NSP}}{50}{figure.caption.52}
 \contentsline {figure}{\numberline {3.3}{\ignorespaces T-SNE visualization of Cardio dataset, morphology}}{51}{figure.caption.53}
 \contentsline {figure}{\numberline {3.4}{\ignorespaces T-SNE visualization of Bach dataset}}{52}{figure.caption.55}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Bach's Chorales Classification Tree Without Feature Selection}}{60}{figure.caption.87}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Bach's Chorales Classification Tree with Feature Selection}}{62}{figure.caption.89}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Bach's Chorales Na\"ive Bayes without Feature Selection}}{63}{figure.caption.91}
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Bach's Chorales Na\"ive Bayes with Feature Selection}}{64}{figure.caption.93}
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Bach's Chorales Hunter}}{65}{figure.caption.95}
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Hunter Population Growth, CardioNSP}}{67}{figure.caption.96}
+\contentsline {figure}{\numberline {3.11}{\ignorespaces Multiclass Na\"ive Bayes Optimizer Growth, CardioNSP}}{67}{figure.caption.96}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {lstlisting}{\numberline {A.1}Best Hunter, Yeast}{75}{lstlisting.A.1}
+\contentsline {lstlisting}{\numberline {A.1}Best Hunter, Yeast}{80}{lstlisting.A.1}

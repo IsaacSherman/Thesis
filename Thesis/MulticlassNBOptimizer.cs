@@ -175,6 +175,11 @@ namespace EvoOptimization.MulticlassNBOptimizer
                     classAccuracy = new List<double>(classAcc);
 
                 }
+                else
+                {
+                    int ark = 4;
+                    ark++;
+                }
 
             }
 
